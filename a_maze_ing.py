@@ -25,7 +25,10 @@ class MazeGenerator:
         self._explore(rng, edges, visited_nodes, stack)
         return Maze(self.width, self.height, edges)
 
-    def generate_42(self, visited_nodes: set[Coord]) -> None:
+    def set_42(self, visited_nodes: set[Coord]) -> None:
+        #    define　a list defined as a constant
+        # to form the number “42” in a 7-column by 5-row grid,
+        # with one empty cell in the center
         PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
                                      [True, False, False, False,
                                          False, False, True],
@@ -33,9 +36,20 @@ class MazeGenerator:
                                      [False, False, True, False,
                                          True, False, False],
                                      [False, False, True, False, True, True, True]]
-        
-        x0 = (self.width - 7) // 2
-        y0 = (self.height - 5) // 2
+    #    define starting point from  upper left cause loop with "for range()"
+
+        wide_42 = len(PATTERN[0])
+        height_42 = len(PATTERN)
+        x0 = (self.width - wide_42) // 2
+        y0 = (self.height - height_42) // 2
+        for r in range(height_42):
+            for c in range(wide_42):
+                if PATTERN[r][c]:
+                    visited_nodes.add((x0 + c, y0 + r))
+
+#         Simply by adding it to `visited_nodes`,
+# a path through the spanning tree is created that avoids it.
+# So, a single isolated “42” is created.
 
     def _explore(
             self,
@@ -44,7 +58,7 @@ class MazeGenerator:
             visited_nodes: set[Coord],
             stack: list[Coord],
     ) -> None:
-        self.generate_42(visited_nodes)
+        self.set_42(visited_nodes)
         while stack:
             cur = stack[-1]
             unvisited: list[Coord] = self._unvisited_neighbors(
@@ -122,10 +136,12 @@ def expression_hex(maze: "Maze") -> str:
     return "".join(tmp)
 
 
-# def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
-#     stack: list[Coord] = []
-#     visited: set[Coord] = set()
-#     value = 0
+def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
+    stack: list[Coord] = []
+    visited: set[Coord] = set()
+    value = 0
+
+
 if __name__ == "__main__":
     config = check_date()
     print(config)
