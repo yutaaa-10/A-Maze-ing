@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import random
+from error_handling import check_date
 
 
 Coord = tuple[int, int]
@@ -68,3 +69,8 @@ class MazeGenerator:
         width: int
         height: int
         edges: Edges
+
+
+if __name__ == "__main__":
+    config = check_date()
+    print(config)
