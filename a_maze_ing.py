@@ -21,12 +21,21 @@ class MazeGenerator:
         x, y = 0, 0
         self.visited_nodes.add((x, y))
         self.stack.append((x, y))
+        self._explore(rng)
+        maze = self.Maze(self.width, self.height, self.edges)
+        return maze
+
+    def _explore(self, rng: random.Random) -> None:
         while self.stack:
             x, y = self.stack[-1]
             unvisited: list[Coord] = self._unvisited_neighbors((x, y))
-            unvisited[rng.randint(0, len(unvisited))]
-        maze = self.Maze(self.width, self.height, self.edges)
-        return maze
+            if unvisited:
+                nxt = rng.choice(unvisited)
+                self.edges.add(frozenset(((x, y), nxt)))
+                self.stack.append(nxt)
+                self.visited_nodes.add(nxt)
+            else:
+                self.stack.pop(-1)
 
     def _is_inside(self, cell: Coord) -> bool:
         x, y = cell
