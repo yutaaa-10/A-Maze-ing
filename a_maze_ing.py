@@ -69,7 +69,7 @@ class Maze:
     edges: Edges
 
 
-def wall_bits(edges: frozenset[tuple[Coord]], cell: Coord) -> int:
+def wall_bits(edges: Edges, cell: Coord) -> int:
     x, y = cell
     value = 0
     # North
@@ -87,6 +87,22 @@ def wall_bits(edges: frozenset[tuple[Coord]], cell: Coord) -> int:
     return value
 
 
+def expression_hex(maze: "Maze") -> str:
+    width = maze.width
+    height = maze.height
+    x, y = 0, 0
+    tmp: list[str] = []
+    for y in range(height):
+        for x in range(width):
+            value = wall_bits(maze.edges, (x, y))
+            tmp.append(format(value, "x"))
+        tmp.append('\n')
+    return "".join(tmp)
+
+
 if __name__ == "__main__":
     config = check_date()
     print(config)
+    gen = MazeGenerator(15, 20)
+    maze = gen.generate(42)
+    print(expression_hex(maze))
