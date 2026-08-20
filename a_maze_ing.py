@@ -19,6 +19,12 @@ class MazeGenerator:
         edges: Edges = set()
         visited_nodes: set[Coord] = set()
         stack: list[Coord] = []
+# I changed `edges`, `visited_nodes`,
+# and `stack` to local variables within the `generate` function.
+# Since these variables are only needed for a single call to `generate`,
+# there is no need to maintain them across the entire instance; 
+# this change is intended to improve the reusability of the `generate` function.
+
         start: Coord = (0, 0)
         visited_nodes.add(start)
         stack.append(start)
