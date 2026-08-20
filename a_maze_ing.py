@@ -25,6 +25,18 @@ class MazeGenerator:
         self._explore(rng, edges, visited_nodes, stack)
         return Maze(self.width, self.height, edges)
 
+    def generate_42(self, visited_nodes: set[Coord]) -> None:
+        PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
+                                     [True, False, False, False,
+                                         False, False, True],
+                                     [True, True, True, False, True, True, True],
+                                     [False, False, True, False,
+                                         True, False, False],
+                                     [False, False, True, False, True, True, True]]
+        
+        x0 = (self.width - 7) // 2
+        y0 = (self.height - 5) // 2
+
     def _explore(
             self,
             rng: random.Random,
@@ -32,6 +44,7 @@ class MazeGenerator:
             visited_nodes: set[Coord],
             stack: list[Coord],
     ) -> None:
+        self.generate_42(visited_nodes)
         while stack:
             cur = stack[-1]
             unvisited: list[Coord] = self._unvisited_neighbors(
@@ -64,8 +77,6 @@ class MazeGenerator:
         return x >= 0 and x < self.width and y >= 0 and y < self.height
 
 
-
-
 @dataclass
 class Maze:
     width: int
@@ -91,11 +102,11 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
     return value
 
 
-@dataclass
-class Cell:
-    cell: tuple[int, int]
-    value: int
-    visited: bool = False
+# @dataclass
+# class Cell:
+#     cell: tuple[int, int]
+#     value: int
+#     visited: bool = False
 
 
 def expression_hex(maze: "Maze") -> str:
@@ -111,15 +122,10 @@ def expression_hex(maze: "Maze") -> str:
     return "".join(tmp)
 
 
-
-
-
 # def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
 #     stack: list[Coord] = []
 #     visited: set[Coord] = set()
 #     value = 0
-
-
 if __name__ == "__main__":
     config = check_date()
     print(config)
