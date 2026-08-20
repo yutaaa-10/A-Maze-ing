@@ -10,62 +10,60 @@ Edges = set[Edge]
 
 class MazeGenerator:
     def __init__(self, width: int, height: int) -> None:
-        self.edges: Edges = set()
-        self.visited_nodes: set[Coord] = set()
-        self.stack: list[Coord] = []
         self.width = width
         self.height = height
 
-        def generate(self, seed: int | None = None) -> "Maze":
-            rng = random.Random(seed)
+    def generate(self, seed: int | None = None) -> "Maze":
+        rng = random.Random(seed)
         # Making unique random number generator
-            edges: Edges = set()
-            visited_nodes: set[Coord] = set()
-            stack: list[Coord] = []
+        edges: Edges = set()
+        visited_nodes: set[Coord] = set()
+        stack: list[Coord] = []
+        start: Coord = (0, 0)
+        visited_nodes.add(start)
+        stack.append(start)
+        self._explore(rng, edges, visited_nodes, stack)
+        return Maze(self.width, self.height, edges)
 
-            start: Coord = (0, 0)
-            visited_nodes.add(start)
-            stack.append(start)
-            self._explore(rng, edges, visited_nodes, stack)
-            return Maze(self.width, self.height, edges)
-
-        def _explore(
+    def _explore(
             self,
             rng: random.Random,
             edges: Edges,
             visited_nodes: set[Coord],
             stack: list[Coord],
-        ) -> None:
-            while stack:
-                cur = stack[-1]
-                unvisited: list[Coord] = self._unvisited_neighbors(
-                    cur, visited_nodes)
-                if unvisited:
-                    nxt = rng.choice(unvisited)
-                    edges.add(frozenset((cur, nxt)))
-                    visited_nodes.add(nxt)
-                    stack.append(nxt)
-                else:
-                    stack.pop()
+    ) -> None:
+        while stack:
+            cur = stack[-1]
+            unvisited: list[Coord] = self._unvisited_neighbors(
+                cur, visited_nodes)
+            if unvisited:
+                nxt = rng.choice(unvisited)
+                edges.add(frozenset((cur, nxt)))
+                visited_nodes.add(nxt)
+                stack.append(nxt)
+            else:
+                stack.pop()
 
-        def _unvisited_neighbors(
-            self, cell: Coord, visited_nodes: set[Coord]
-        ) -> list[Coord]:
-            x, y = cell
-            neighbors: list[Coord] = [
-                (x, y - 1),  # north
-                (x + 1, y),  # east
-                (x, y + 1),  # south
-                (x - 1, y),  # west
-            ]
-            return [
-                n for n in neighbors
-                if self._is_inside(n) and n not in visited_nodes
-            ]
+    def _unvisited_neighbors(
+        self, cell: Coord, visited_nodes: set[Coord]
+    ) -> list[Coord]:
+        x, y = cell
+        neighbors: list[Coord] = [
+            (x, y - 1),  # north
+            (x + 1, y),  # east
+            (x, y + 1),  # south
+            (x - 1, y),  # west
+        ]
+        return [
+            n for n in neighbors
+            if self._is_inside(n) and n not in visited_nodes
+        ]
 
     def _is_inside(self, cell: Coord) -> bool:
         x, y = cell
         return x >= 0 and x < self.width and y >= 0 and y < self.height
+
+
 
 
 @dataclass
@@ -113,13 +111,13 @@ def expression_hex(maze: "Maze") -> str:
     return "".join(tmp)
 
 
-def is
 
 
-def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
-    stack: list[Coord] = []
-    visited: set[Coord] = set()
-    value = 0
+
+# def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
+#     stack: list[Coord] = []
+#     visited: set[Coord] = set()
+#     value = 0
 
 
 if __name__ == "__main__":
