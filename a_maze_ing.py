@@ -23,7 +23,7 @@ class MazeGenerator:
         self.visited_nodes.add((x, y))
         self.stack.append((x, y))
         self._explore(rng)
-        maze = self.Maze(self.width, self.height, self.edges)
+        maze = Maze(self.width, self.height, self.edges)
         return maze
 
     def _explore(self, rng: random.Random) -> None:
@@ -61,14 +61,32 @@ class MazeGenerator:
                 unvisited.append(i)
         return unvisited
 
-    @dataclass
-    class Maze:
-        width: int
-        height: int
-        edges: Edges
+
+@dataclass
+class Maze:
+    width: int
+    height: int
+    edges: Edges
+
+
+def wall_bits(edges: frozenset[tuple[Coord]], cell: Coord) -> int:
+    x, y = cell
+    value = 0
+    # North
+    if frozenset(((x, y), (x, y - 1))) not in edges:
+        value += 1
+    # East
+    if frozenset(((x, y), (x + 1, y))) not in edges:
+        value += 2
+    # South
+    if frozenset(((x, y), (x, y + 1))) not in edges:
+        value += 4
+    # West
+    if frozenset(((x, y), (x - 1, y))) not in edges:
+        value += 8
+    return value
 
 
 if __name__ == "__main__":
     config = check_date()
     print(config)
-
