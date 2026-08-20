@@ -22,7 +22,7 @@ class MazeGenerator:
 # I changed `edges`, `visited_nodes`,
 # and `stack` to local variables within the `generate` function.
 # Since these variables are only needed for a single call to `generate`,
-# there is no need to maintain them across the entire instance; 
+# there is no need to maintain them across the entire instance;
 # this change is intended to improve the reusability of the `generate` function.
 
         start: Coord = (0, 0)
@@ -95,6 +95,60 @@ class MazeGenerator:
     def _is_inside(self, cell: Coord) -> bool:
         x, y = cell
         return x >= 0 and x < self.width and y >= 0 and y < self.height
+
+    @staticmethod
+    def open_corners(maze: "Maze") -> None:
+        corners: list[Coord] = [
+            (0, 0),
+            (0, maze.height - 1),
+            (maze.width - 1, 0),
+            (maze.width - 1, maze.height - 1)
+        ]
+        for x, y in corners:
+            if not frozenset(((x, y), (x + 1, y))) in maze.edges:
+                maze.edges.add(frozenset(((x, y), (x + 1, y))))
+            if not frozenset(((x, y), (x, y))) in maze.edges:
+                maze.edges.add(frozenset(((x, y), (x + 1, y))))
+
+    def neighbors_without_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
+        x, y = cell
+        neighbors: list[Coord] = [
+            (x, y - 1),  # north
+            (x + 1, y),  # east
+            (x, y + 1),  # south
+            (x - 1, y),  # west
+        ]
+        return [
+            n for n in neighbors
+            if self._is_inside(n) and frozenset((cell, n)) not in edges
+        ]
+
+    def neighbors_with_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
+        x, y = cell
+        neighbors: list[Coord] = [
+            (x, y - 1),  # north
+            (x + 1, y),  # east
+            (x, y + 1),  # south
+            (x - 1, y),  # west
+        ]
+        return [
+            n for n in neighbors
+            if self._is_inside(n) and frozenset((cell, n)) in edges
+        ]
+
+    def toPacmanField(self, maze: "Maze") -> "Maze":
+        self.open_corners(maze)
+        for y in range(maze.height):
+            for x in range(maze.width):
+                if len(self.neighbors_with_edge((x, y), maze.edges)) == 1:
+                    without_edges = self.neighbors_without_edge(
+                        (x, y), maze.edges)
+
+                    # すべてのセルについて:
+                    #     もしそれが行き止まりなら:
+                    #         辺を持っていない隣を集める
+                    #         そのうち、追加しても 3x3 を作らないものを選ぶ
+                    #         辺を追加する
 
 
 @dataclass
