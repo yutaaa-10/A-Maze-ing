@@ -194,7 +194,7 @@ def validate_config(config: dict[str, ConfigValue]) -> None:
         )
 
 
-def main() -> None:
+def check_date() -> None:
     
     try:
         config = read_config("./config.txt")
@@ -220,4 +220,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    check_date()
