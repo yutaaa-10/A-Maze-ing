@@ -40,10 +40,7 @@ class MazeGenerator:
 
     def _is_inside(self, cell: Coord) -> bool:
         x, y = cell
-        if x >= 0 and x < self.width and y >= 0 and y < self.height:
-            return True
-        else:
-            return False
+        return x >= 0 and x < self.width and y >= 0 and y < self.height
 
     def _unvisited_neighbors(self, cell: Coord) -> list[Coord]:
         x, y = cell
@@ -60,7 +57,7 @@ class MazeGenerator:
         unvisited: list[Coord] = []
 
         for i in neighbors:
-            if (i) not in self.visited_nodes and self._is_inside(i):
+            if i not in self.visited_nodes and self._is_inside(i):
                 unvisited.append(i)
         return unvisited
 
@@ -74,3 +71,4 @@ class MazeGenerator:
 if __name__ == "__main__":
     config = check_date()
     print(config)
+
