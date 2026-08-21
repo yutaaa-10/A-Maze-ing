@@ -101,21 +101,21 @@ class MazeGenerator:
     def open_corners(maze: "Maze") -> None:
         w, h = maze.width, maze.height
         maze.edges.update(
-        {
-            # top_left (0, 0) -> 右, 下
-            frozenset(((0, 0), (1, 0))),
-            frozenset(((0, 0), (0, 1))),
-            # bottom_left (0, h - 1) -> 右, 上
-            frozenset(((0, h - 1), (1, h - 1))),
-            frozenset(((0, h - 1), (0, h - 2))),
-            # top_right (w - 1, 0) -> 左, 下
-            frozenset(((w - 1, 0), (w - 2, 0))),
-            frozenset(((w - 1, 0), (w - 1, 1))),
-            # bottom_right (w - 1, h - 1) -> 左, 上
-            frozenset(((w - 1, h - 1), (w - 2, h - 1))),
-            frozenset(((w - 1, h - 1), (w - 1, h - 2))),
-        }
-    )
+            {
+                # top_left (0, 0) -> 右, 下
+                frozenset(((0, 0), (1, 0))),
+                frozenset(((0, 0), (0, 1))),
+                # bottom_left (0, h - 1) -> 右, 上
+                frozenset(((0, h - 1), (1, h - 1))),
+                frozenset(((0, h - 1), (0, h - 2))),
+                # top_right (w - 1, 0) -> 左, 下
+                frozenset(((w - 1, 0), (w - 2, 0))),
+                frozenset(((w - 1, 0), (w - 1, 1))),
+                # bottom_right (w - 1, h - 1) -> 左, 上
+                frozenset(((w - 1, h - 1), (w - 2, h - 1))),
+                frozenset(((w - 1, h - 1), (w - 1, h - 2))),
+            }
+        )
 
     def neighbors_without_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
         x, y = cell
@@ -144,6 +144,14 @@ class MazeGenerator:
         ]
 
     def _is_addable_edge(self, p1: tuple[int, int], p2: tuple[int, int]) -> bool:
+        x1, y1 = p1
+        x2, y2 = p2
+        lo_limit_x = max(x1, x2) - 2
+        up_limit_x = min(x1, x2)
+        lo_limit_y = max(y1, y2) - 2
+        up_limit_y = min(y1, y2)
+
+        
 
     def toPacmanField(self, maze: "Maze") -> None:
         self.open_corners(maze)
@@ -174,7 +182,7 @@ class Maze:
 def wall_bits(edges: Edges, cell: Coord) -> int:
     x, y = cell
     value = 0
-    # Northedges
+    # North
     if frozenset(((x, y), (x, y - 1))) not in edges:
         value += 1
     # East
