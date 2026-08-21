@@ -222,7 +222,7 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
     visited: set[Coord] = set()
     value = 0
 
-    l
+    love
 
 
 if __name__ == "__main__":
