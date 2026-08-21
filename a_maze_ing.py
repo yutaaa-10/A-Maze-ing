@@ -232,9 +232,13 @@ if __name__ == "__main__":
         )
         raise SystemExit(1)
     config = check_date(sys.argv[1])
+    if config is None:
+        raise SystemExit(1)
     print(config)
+    width = config["WIDTH"]
+    height = config["HEIGHT"]
 
-    gen = MazeGenerator(20, 20)
+    gen = MazeGenerator(width, height)
     maze = gen.generate(42)
     hex_text = expression_hex(maze)
     print(hex_text)
