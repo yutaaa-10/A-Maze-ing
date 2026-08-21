@@ -151,7 +151,7 @@ class MazeGenerator:
         lo_limit_y = max(y1, y2) - 2
         up_limit_y = min(y1, y2)
 
-        
+
 
     def toPacmanField(self, maze: "Maze") -> None:
         self.open_corners(maze)
@@ -221,6 +221,8 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
     stack: list[Coord] = []
     visited: set[Coord] = set()
     value = 0
+
+    l
 
 
 if __name__ == "__main__":
