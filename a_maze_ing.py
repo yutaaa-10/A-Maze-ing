@@ -182,6 +182,7 @@ class MazeGenerator:
         return True
 
     def _braid(self, maze: "Maze") -> "Maze":
+        LIMITED_NUM = 3
         edges = set(maze.edges)
         # self.open_corners(new_maze)
         for y in range(maze.height):
@@ -191,7 +192,7 @@ class MazeGenerator:
                             (x, y), edges):
                         if len(self.neighbors_with_edge(cell, edges)) == 0:
                             continue
-                        if self._is_addable_edge((x, y), cell, 3, edges):
+                        if self._is_addable_edge((x, y), cell, LIMITED_NUM, edges):
                             edges.add(frozenset(((x, y), cell)))
                             break
         return Maze(maze.width, maze.height, edges)
