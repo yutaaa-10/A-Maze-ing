@@ -16,6 +16,7 @@ class Color(Enum):
 
     BLACK = (0, 0, 0)
     WHITE = (255, 255, 255)
+    GRAY = (128, 128, 128)
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
@@ -86,6 +87,21 @@ def draw_cell(canvas: Canvas, x: int, y: int, value: int) -> None:
             canvas[center_y + offset][center_x - 1] = True
 
 
+def find_42_centers(grid: HexGrid) -> set[tuple[int, int]]:
+    """Return canvas coordinates of fully closed cells."""
+
+    centers: set[tuple[int, int]] = set()
+
+    for y, row in enumerate(grid):
+        for x, value in enumerate(row):
+            if value == 0xF:
+                center_x = x * 2 + 1
+                center_y = y * 2 + 1
+                centers.add((center_x, center_y))
+
+    return centers
+
+
 def color_block(color: Color) -> str:
     """Return one 2-character by 1-line block in an RGB colour."""
 
@@ -96,20 +112,30 @@ def color_block(color: Color) -> str:
 
 def render_canvas(
     canvas: Canvas,
+    pattern_centers: set[tuple[int, int]],
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
+    pattern_color: Color = Color.GRAY,
 ) -> str:
     """Convert a logical canvas to an ANSI-coloured terminal string."""
 
     wall_block = color_block(wall_color)
     corridor_block = color_block(corridor_color)
+    pattern_block = color_block(pattern_color)
     output: list[str] = []
 
-    for row in canvas:
-        output.append("".join(
-            wall_block if is_wall else corridor_block
-            for is_wall in row
-        ))
+    for canvas_y, row in enumerate(canvas):
+        output_row: list[str] = []
+
+        for canvas_x, is_wall in enumerate(row):
+            if (canvas_x, canvas_y) in pattern_centers:
+                output_row.append(pattern_block)
+            elif is_wall:
+                output_row.append(wall_block)
+            else:
+                output_row.append(corridor_block)
+
+        output.append("".join(output_row))
 
     return "\n".join(output)
 
@@ -118,6 +144,7 @@ def render_maze(
     hex_text: str,
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
+    pattern_color: Color = Color.GRAY,
 ) -> str:
 
     grid = parse_hex_maze(hex_text)
@@ -129,14 +156,28 @@ def render_maze(
         for x, value in enumerate(row):
             draw_cell(canvas, x, y, value)
 
-    return render_canvas(canvas, wall_color, corridor_color)
+    pattern_centers = find_42_centers(grid)
+
+    return render_canvas(
+        canvas,
+        pattern_centers,
+        wall_color=wall_color,
+        corridor_color=corridor_color,
+        pattern_color=pattern_color,
+    )
 
 
 def display_maze(
     hex_text: str,
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
+    pattern_color: Color = Color.GRAY,
 ) -> None:
     """Print hexadecimal maze data as a coloured terminal maze."""
 
-    print(render_maze(hex_text, wall_color, corridor_color))
+    print(render_maze(
+        hex_text,
+        wall_color=wall_color,
+        corridor_color=corridor_color,
+        pattern_color=pattern_color,
+    ))
