@@ -182,6 +182,7 @@ class MazeGenerator:
         return True
 
     def _braid(self, maze: "Maze") -> "Maze":
+        LIMITED_NUM = 3
         edges = set(maze.edges)
         # self.open_corners(new_maze)
         for y in range(maze.height):
@@ -191,7 +192,7 @@ class MazeGenerator:
                             (x, y), edges):
                         if len(self.neighbors_with_edge(cell, edges)) == 0:
                             continue
-                        if self._is_addable_edge((x, y), cell, 3, edges):
+                        if self._is_addable_edge((x, y), cell, LIMITED_NUM, edges):
                             edges.add(frozenset(((x, y), cell)))
                             break
         return Maze(maze.width, maze.height, edges)
@@ -249,10 +250,10 @@ def expression_hex(maze: "Maze") -> str:
     return "".join(tmp)
 
 
-def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
-    stack: list[Coord] = []
-    visited: set[Coord] = set()
-    value = 0
+# def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
+#     stack: list[Coord] = []
+#     visited: set[Coord] = set()
+#     value = 0
 
 
 if __name__ == "__main__":
@@ -268,14 +269,18 @@ if __name__ == "__main__":
     print(config)
     width = config["WIDTH"]
     height = config["HEIGHT"]
+    PERFECT = config["PERFECT"]
 
-    gen = MazeGenerator(57, 45)
-    maze = gen.generate(42, False)
     gen = MazeGenerator(width, height)
-    maze = gen.generate(42)
+    maze = gen.generate(43, PERFECT)
+    gen2 = MazeGenerator(width, height)
+    maze2 = gen2.generate(42, False)
     hex_text = expression_hex(maze)
+    hex_text2 = expression_hex(maze2)
     print(hex_text)
-
+    print(hex_text2)
     display_maze(hex_text)
+    print()
+    display_maze(hex_text2)
     ent = 0, 0
     ext = 14, 19
