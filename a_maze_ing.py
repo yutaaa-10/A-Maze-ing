@@ -15,7 +15,7 @@ class MazeGenerator:
         self.width = width
         self.height = height
 
-    def generate(self, seed: int | None = None) -> "Maze":
+    def generate(self, seed: int | None = None, perfect: bool = True) -> "Maze":
         rng = random.Random(seed)
         # Making unique random number generator
         edges: Edges = set()
@@ -31,7 +31,10 @@ class MazeGenerator:
         visited_nodes.add(start)
         stack.append(start)
         self._explore(rng, edges, visited_nodes, stack)
-        return Maze(self.width, self.height, edges)
+        maze = Maze(self.width, self.height, edges)
+        if not perfect:
+            maze = self._braid(maze)
+        return maze
 
     def set_42(self, visited_nodes: set[Coord]) -> None:
         #    define　a list defined as a constant
@@ -144,33 +147,61 @@ class MazeGenerator:
             if self._is_inside(n) and frozenset((cell, n)) in edges
         ]
 
-    def _is_addable_edge(self, p1: tuple[int, int], p2: tuple[int, int]) -> bool:
+    def _check_square_grid(self, bx: Coord, n: int):
+        ...
+
+    def _cell_is_inside_square(self, cell: Coord, lx: int, ux: int, ly: int, uy: int) -> bool:
+        x, y = cell
+        return lx <= x and x <= ux and ly <= y and y <= uy
+
+    def _is_addable_edge(self, p1: Coord, p2: Coord, n: int, edges: Edges) -> bool:
+        candidate = frozenset((p1, p2))
+        edges_after = edges | {candidate}
         x1, y1 = p1
         x2, y2 = p2
-        lo_limit_x = max(x1, x2) - 2
+        lo_limit_x = max(x1, x2) - (n - 1)
         up_limit_x = min(x1, x2)
-        lo_limit_y = max(y1, y2) - 2
+        lo_limit_y = max(y1, y2) - (n - 1)
         up_limit_y = min(y1, y2)
+        max_edges_in_grid = 2 * n * (n-1)
+        for y in range(lo_limit_y, up_limit_y + 1):
+            for x in range(lo_limit_x, up_limit_x + 1):
+                tmp: Edges = set()
+                for r in range(3):
+                    for c in range(3):
+                        if self._is_inside((x + c, y + r)):
+                            for cell in self.neighbors_with_edge(
+                                    (x + c, y + r), edges_after):
+                                if self._cell_is_inside_square(cell, x,
+                                                               x + n - 1,
+                                                               y,
+                                                               y + n - 1):
+                                    tmp.add(frozenset((cell, (x + c, y + r))))
+                if len(tmp) == max_edges_in_grid:
+                    return False
+        return True
 
-        
-
-    def toPacmanField(self, maze: "Maze") -> None:
-        self.open_corners(maze)
+    def _braid(self, maze: "Maze") -> "Maze":
+        edges = set(maze.edges)
+        # self.open_corners(new_maze)
         for y in range(maze.height):
             for x in range(maze.width):
-                if len(self.neighbors_with_edge((x, y), maze.edges)) == 1:
+                if len(self.neighbors_with_edge((x, y), edges)) == 1:
                     for cell in self.neighbors_without_edge(
-                            (x, y), maze.edges):
-                        if self._is_addable_edge((x, y), cell):
-                            maze.edges.add(frozenset(((x, y), cell)))
+                            (x, y), edges):
+                        if len(self.neighbors_with_edge(cell, edges)) == 0:
+                            continue
+                        if self._is_addable_edge((x, y), cell, 3, edges):
+                            edges.add(frozenset(((x, y), cell)))
                             break
+        return Maze(maze.width, maze.height, edges)
 
-                    # すべてのセルについて:
-                    #     もしそれが行き止まりなら:
-                    #         辺を持っていない隣を集める
-                    #         そのうち、追加しても 3x3 を作らないものを選ぶ
-                        # ->左上から3,3のループで見る
-                    #         辺を追加する
+        # すべてのセルについて:
+        #     もしそれが行き止まりなら:
+        #         辺を持っていない隣を集める
+        #         そのうち、追加しても 3x3 を作らないものを選ぶ
+        # ->左上から3,3のループで見る
+        #         辺を追加する
 
 
 @dataclass
@@ -223,6 +254,8 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
     visited: set[Coord] = set()
     value = 0
 
+    love
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -238,6 +271,8 @@ if __name__ == "__main__":
     width = config["WIDTH"]
     height = config["HEIGHT"]
 
+    gen = MazeGenerator(57, 45)
+    maze = gen.generate(42, False)
     gen = MazeGenerator(width, height)
     maze = gen.generate(42)
     hex_text = expression_hex(maze)
