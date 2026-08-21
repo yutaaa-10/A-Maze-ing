@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 import random
 from error_handling import check_date
-from visual import Color, display_maze
+from visual import display_maze
+import sys
 
 
 Coord = tuple[int, int]
@@ -257,11 +258,23 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
 
 
 if __name__ == "__main__":
-    config = check_date()
+    if len(sys.argv) != 2:
+        print(
+            f"Usage: python3 {sys.argv[0]} config.txt",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    config = check_date(sys.argv[1])
+    if config is None:
+        raise SystemExit(1)
     print(config)
+    width = config["WIDTH"]
+    height = config["HEIGHT"]
 
     gen = MazeGenerator(57, 45)
     maze = gen.generate(42, False)
+    gen = MazeGenerator(width, height)
+    maze = gen.generate(42)
     hex_text = expression_hex(maze)
     print(hex_text)
 

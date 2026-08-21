@@ -194,26 +194,15 @@ def validate_config(config: dict[str, ConfigValue]) -> None:
         )
 
 
-def check_date() -> None:
+def check_date(
+        filename: str,
+) -> dict[str, ConfigValue] | None:
     
     try:
-        config = read_config("./config.txt")
+        config = read_config(filename)
 
     except ConfigError as exc:
         print(f"Error: {exc}")
-        return
+        return None
 
-    print("Configuration loaded successfully:")
-    width = config["WIDTH"]
-    height = config["HEIGHT"]
-    entry = config["ENTRY"]
-    exit = config["EXIT"]
-    output_line = config["OUTPUT_FILE"]
-    perfect = config["PERFECT"]
-
-    print(width)
-    print(height)
-    print(entry)
-    print(exit)
-    print(output_line)
-    print(perfect)
+    return config
