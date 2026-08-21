@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import random
 from error_handling import check_date
+from visual import Color, display_maze
 
 
 Coord = tuple[int, int]
@@ -127,7 +128,7 @@ class MazeGenerator:
         x, y = cell
         neighbors: list[Coord] = [
             (x, y - 1),  # north
-            (x + 1, y),  # east
+            (x + 1, y),  # east_unvisited_neighbors
             (x, y + 1),  # south
             (x - 1, y),  # west
         ]
@@ -161,7 +162,7 @@ class Maze:
 def wall_bits(edges: Edges, cell: Coord) -> int:
     x, y = cell
     value = 0
-    # North
+    # Northedges
     if frozenset(((x, y), (x, y - 1))) not in edges:
         value += 1
     # East
@@ -205,8 +206,12 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
 if __name__ == "__main__":
     config = check_date()
     print(config)
-    gen = MazeGenerator(15, 20)
+    
+    gen = MazeGenerator(20, 20)
     maze = gen.generate(42)
-    print(expression_hex(maze))
+    hex_text = expression_hex(maze)
+    print(hex_text)
+
+    display_maze(hex_text)
     ent = 0, 0
     ext = 14, 19

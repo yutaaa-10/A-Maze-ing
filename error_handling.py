@@ -217,7 +217,3 @@ def check_date() -> None:
     print(exit)
     print(output_line)
     print(perfect)
-
-
-if __name__ == "__main__":
-    check_date()
