@@ -99,17 +99,23 @@ class MazeGenerator:
 
     @staticmethod
     def open_corners(maze: "Maze") -> None:
-        corners: list[Coord] = [
-            (0, 0),
-            (0, maze.height - 1),
-            (maze.width - 1, 0),
-            (maze.width - 1, maze.height - 1)
-        ]
-        for x, y in corners:
-            if not frozenset(((x, y), (x + 1, y))) in maze.edges:
-                maze.edges.add(frozenset(((x, y), (x + 1, y))))
-            if not frozenset(((x, y), (x, y))) in maze.edges:
-                maze.edges.add(frozenset(((x, y), (x + 1, y))))
+        w, h = maze.width, maze.height
+        maze.edges.update(
+        {
+            # top_left (0, 0) -> 右, 下
+            frozenset(((0, 0), (1, 0))),
+            frozenset(((0, 0), (0, 1))),
+            # bottom_left (0, h - 1) -> 右, 上
+            frozenset(((0, h - 1), (1, h - 1))),
+            frozenset(((0, h - 1), (0, h - 2))),
+            # top_right (w - 1, 0) -> 左, 下
+            frozenset(((w - 1, 0), (w - 2, 0))),
+            frozenset(((w - 1, 0), (w - 1, 1))),
+            # bottom_right (w - 1, h - 1) -> 左, 上
+            frozenset(((w - 1, h - 1), (w - 2, h - 1))),
+            frozenset(((w - 1, h - 1), (w - 1, h - 2))),
+        }
+    )
 
     def neighbors_without_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
         x, y = cell
@@ -137,18 +143,24 @@ class MazeGenerator:
             if self._is_inside(n) and frozenset((cell, n)) in edges
         ]
 
-    def toPacmanField(self, maze: "Maze") -> "Maze":
+    def _is_addable_edge(self, p1: tuple[int, int], p2: tuple[int, int]) -> bool:
+
+    def toPacmanField(self, maze: "Maze") -> None:
         self.open_corners(maze)
         for y in range(maze.height):
             for x in range(maze.width):
                 if len(self.neighbors_with_edge((x, y), maze.edges)) == 1:
-                    without_edges = self.neighbors_without_edge(
-                        (x, y), maze.edges)
+                    for cell in self.neighbors_without_edge(
+                            (x, y), maze.edges):
+                        if self._is_addable_edge((x, y), cell):
+                            maze.edges.add(frozenset(((x, y), cell)))
+                            break
 
                     # すべてのセルについて:
                     #     もしそれが行き止まりなら:
                     #         辺を持っていない隣を集める
                     #         そのうち、追加しても 3x3 を作らないものを選ぶ
+                        # ->左上から3,3のループで見る
                     #         辺を追加する
 
 
@@ -206,7 +218,7 @@ def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
 if __name__ == "__main__":
     config = check_date()
     print(config)
-    
+
     gen = MazeGenerator(20, 20)
     maze = gen.generate(42)
     hex_text = expression_hex(maze)
