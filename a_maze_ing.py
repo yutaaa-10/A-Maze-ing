@@ -134,22 +134,6 @@ class MazeGenerator:
             if self._is_inside(n) and frozenset((cell, n)) not in edges
         ]
 
-    def neighbors_with_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
-        x, y = cell
-        neighbors: list[Coord] = [
-            (x, y - 1),  # north
-            (x + 1, y),  # east_unvisited_neighbors
-            (x, y + 1),  # south
-            (x - 1, y),  # west
-        ]
-        return [
-            n for n in neighbors
-            if self._is_inside(n) and frozenset((cell, n)) in edges
-        ]
-
-    def _check_square_grid(self, bx: Coord, n: int):
-        ...
-
     def _cell_is_inside_square(self, cell: Coord, lx: int, ux: int, ly: int, uy: int) -> bool:
         x, y = cell
         return lx <= x and x <= ux and ly <= y and y <= uy
@@ -159,43 +143,56 @@ class MazeGenerator:
         edges_after = edges | {candidate}
         x1, y1 = p1
         x2, y2 = p2
-        lo_limit_x = max(x1, x2) - (n - 1)
-        up_limit_x = min(x1, x2)
-        lo_limit_y = max(y1, y2) - (n - 1)
-        up_limit_y = min(y1, y2)
+        lo_limit_x = max(x1, x2, n - 1) - (n - 1)
+        up_limit_x = min(x1, x2, self.width - n)
+        lo_limit_y = max(y1, y2, n - 1) - (n - 1)
+        up_limit_y = min(y1, y2, self.height - n)
         max_edges_in_grid = 2 * n * (n-1)
         for y in range(lo_limit_y, up_limit_y + 1):
             for x in range(lo_limit_x, up_limit_x + 1):
                 tmp: Edges = set()
                 for r in range(3):
                     for c in range(3):
-                        if self._is_inside((x + c, y + r)):
-                            for cell in self.neighbors_with_edge(
-                                    (x + c, y + r), edges_after):
-                                if self._cell_is_inside_square(cell, x,
-                                                               x + n - 1,
-                                                               y,
-                                                               y + n - 1):
-                                    tmp.add(frozenset((cell, (x + c, y + r))))
+                        if _is_inside((x + c, y + r), self.width, self.height):
+                            # right
+                            edge = frozenset(
+                                ((x + c + 1, y + r), (x + c, y + r)))
+                            if c + 1 < n and edge in edges_after:
+                                tmp.add(edge)
+                            # down
+                            edge = frozenset(
+                                ((x + c, y + r + 1), (x + c, y + r)))
+                            if r + 1 < n and edge in edges_after:
+                                tmp.add(edge)
+
+                            # legacy]
+
+                            # for cell in neighbors_with_edge(
+                            #         (x + c, y + r), edges_after):
+                            #     if self._cell_is_inside_square(cell, x,
+                            #                                    x + n - 1,
+                            #                                    y,
+                            #                                    y + n - 1):
+
+                            # tmp.add(frozenset((cell, (x + c, y + r))))
                 if len(tmp) == max_edges_in_grid:
                     return False
         return True
 
     def _braid(self, maze: "Maze") -> "Maze":
-        LIMITED_NUM = 3
-        edges = set(maze.edges)
+        maze_after = Maze(maze.width, maze.height, set(maze.edges))
         # self.open_corners(new_maze)
         for y in range(maze.height):
             for x in range(maze.width):
-                if len(self.neighbors_with_edge((x, y), edges)) == 1:
+                if len(neighbors_with_edge((x, y), maze)) == 1:
                     for cell in self.neighbors_without_edge(
-                            (x, y), edges):
-                        if len(self.neighbors_with_edge(cell, edges)) == 0:
+                            (x, y), maze_after.edges):
+                        if len(neighbors_with_edge(cell, maze_after)) == 0:
                             continue
-                        if self._is_addable_edge((x, y), cell, LIMITED_NUM, edges):
-                            edges.add(frozenset(((x, y), cell)))
+                        if self._is_addable_edge((x, y), cell, 3, maze_after.edges):
+                            maze_after.edges.add(frozenset(((x, y), cell)))
                             break
-        return Maze(maze.width, maze.height, edges)
+        return maze_after
 
         # すべてのセルについて:
         #     もしそれが行き止まりなら:
@@ -203,6 +200,107 @@ class MazeGenerator:
         #         そのうち、追加しても 3x3 を作らないものを選ぶ
         # ->左上から3,3のループで見る
         #         辺を追加する
+
+    # def _to_path_string(self, results: list[Coord]) -> str:
+    #     paths: list[str] = []
+    #     cur = results[0]
+    #     dr: dict[Coord, str] = {
+    #         (0, -1): "N", (1, 0): "E", (0, 1): "S", (-1, 0): "W"}
+    #     for cell in results[1:]:
+    #         dx = cell[0] - cur[0]
+    #         dy = cell[1] - cur[1]
+    #         paths.append(dr[(dx, dy)])
+    #         cur = cell
+    #     return "".join(paths)
+
+    # def get_shortest_path(self, edges: Edges, start: Coord, goal: Coord) -> str:
+    #     frontier: list[Coord] = [start]
+    #     visited: set[Coord] = set()
+    #     visited.add(start)
+    #     came_from: dict[Coord, Coord] = {}
+    #     while frontier and goal not in visited:
+    #         next_frontier: list[Coord] = []
+    #         for cur in frontier:
+    #             for nxt in neighbors_with_edge(cur, edges):
+    #                 if nxt in visited:
+    #                     continue
+    #                 next_frontier.append(nxt)
+    #                 visited.add(nxt)
+    #                 came_from[nxt] = cur
+    #         frontier = next_frontier
+    #     # If goal is impossible, frontier become Empty
+    #     if goal not in visited:
+    #         raise ValueError
+    #     # kari no  error
+    #     results: list[Coord] = []
+    #     cur = goal
+    #     while cur != start:
+    #         results.append(cur)
+    #         cur = came_from[cur]
+    #     results.append(start)
+    #     results.reverse()
+    #     return self._to_path_string(results)
+
+
+def _to_path_string(results: list[Coord]) -> str:
+    paths: list[str] = []
+    cur = results[0]
+    dr: dict[Coord, str] = {
+        (0, -1): "N", (1, 0): "E", (0, 1): "S", (-1, 0): "W"}
+    for cell in results[1:]:
+        dx = cell[0] - cur[0]
+        dy = cell[1] - cur[1]
+        paths.append(dr[(dx, dy)])
+        cur = cell
+    return "".join(paths)
+
+
+def get_shortest_path(maze: "Maze", start: Coord, goal: Coord) -> str:
+    frontier: list[Coord] = [start]
+    visited: set[Coord] = set()
+    visited.add(start)
+    came_from: dict[Coord, Coord] = {}
+    while frontier and goal not in visited:
+        next_frontier: list[Coord] = []
+        for cur in frontier:
+            for nxt in neighbors_with_edge(cur, maze):
+                if nxt in visited:
+                    continue
+                next_frontier.append(nxt)
+                visited.add(nxt)
+                came_from[nxt] = cur
+        frontier = next_frontier
+    # If goal is impossible, frontier become Empty
+    if goal not in visited:
+        raise ValueError
+    # kari no  error
+    results: list[Coord] = []
+    cur = goal
+    while cur != start:
+        results.append(cur)
+        cur = came_from[cur]
+    results.append(start)
+    results.reverse()
+    return _to_path_string(results)
+
+
+def neighbors_with_edge(cell: Coord, maze: "Maze") -> list[Coord]:
+    x, y = cell
+    neighbors: list[Coord] = [
+        (x, y - 1),  # north
+        (x + 1, y),  # east_unvisited_neighbors
+        (x, y + 1),  # south
+        (x - 1, y),  # west
+    ]
+    return [
+        n for n in neighbors
+        if _is_inside(n, maze.width, maze.height) and frozenset((cell, n)) in maze.edges
+    ]
+
+
+def _is_inside(cell: Coord, width: int, height: int) -> bool:
+    x, y = cell
+    return x >= 0 and x < width and y >= 0 and y < height
 
 
 @dataclass
@@ -237,7 +335,7 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
 #     visited: bool = False
 
 
-def expression_hex(maze: "Maze") -> str:
+def to_hex(maze: "Maze") -> str:
     width = maze.width
     height = maze.height
     x, y = 0, 0
@@ -248,12 +346,6 @@ def expression_hex(maze: "Maze") -> str:
             tmp.append(format(value, "x"))
         tmp.append('\n')
     return "".join(tmp)
-
-
-# def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
-#     stack: list[Coord] = []
-#     visited: set[Coord] = set()
-#     value = 0
 
 
 if __name__ == "__main__":
@@ -271,12 +363,11 @@ if __name__ == "__main__":
     height = config["HEIGHT"]
     PERFECT = config["PERFECT"]
 
-    gen = MazeGenerator(width, height)
-    maze = gen.generate(43, PERFECT)
-    gen2 = MazeGenerator(width, height)
-    maze2 = gen2.generate(42, False)
-    hex_text = expression_hex(maze)
-    hex_text2 = expression_hex(maze2)
+    gen = MazeGenerator(7, 9)
+    maze = gen.generate(42)
+    # gen = MazeGenerator(width, height)
+    # maze = gen.generate(42)
+    hex_text = to_hex(maze)
     print(hex_text)
     print(hex_text2)
     display_maze(hex_text)
@@ -284,3 +375,5 @@ if __name__ == "__main__":
     display_maze(hex_text2)
     ent = 0, 0
     ext = 14, 19
+
+    print(get_shortest_path(maze, ent, ext))
