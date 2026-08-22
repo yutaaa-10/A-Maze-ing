@@ -361,6 +361,7 @@ if __name__ == "__main__":
     print(config)
     width = config["WIDTH"]
     height = config["HEIGHT"]
+    PERFECT = config["PERFECT"]
 
     gen = MazeGenerator(7, 9)
     maze = gen.generate(42)
@@ -368,8 +369,10 @@ if __name__ == "__main__":
     # maze = gen.generate(42)
     hex_text = to_hex(maze)
     print(hex_text)
-
+    print(hex_text2)
     display_maze(hex_text)
+    print()
+    display_maze(hex_text2)
     ent = 0, 0
     ext = 14, 19
 
