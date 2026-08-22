@@ -147,9 +147,6 @@ class MazeGenerator:
             if self._is_inside(n) and frozenset((cell, n)) in edges
         ]
 
-    def _check_square_grid(self, bx: Coord, n: int):
-        ...
-
     def _cell_is_inside_square(self, cell: Coord, lx: int, ux: int, ly: int, uy: int) -> bool:
         x, y = cell
         return lx <= x and x <= ux and ly <= y and y <= uy
@@ -202,6 +199,19 @@ class MazeGenerator:
         #         そのうち、追加しても 3x3 を作らないものを選ぶ
         # ->左上から3,3のループで見る
         #         辺を追加する
+
+    def _to_path_string(self, results: list[Coord]) -> str:
+        paths: list[str] = []
+        cur = results[0]
+        dr: dict[Coord, str] = {
+            (0, -1): "N", (1, 0): "E", (0, 1): "S", (-1, 0): "W"}
+        for cell in results[1:]:
+            dx = cell[0] - cur[0]
+            dy = cell[1] - cur[1]
+            paths.append(dr[(dx, dy)])
+            cur = cell
+        return "".join(paths)
+
     def get_shortest_path(self, edges: Edges, start: Coord, goal: Coord) -> str:
         frontier: list[Coord] = [start]
         visited: set[Coord] = set()
@@ -227,7 +237,8 @@ class MazeGenerator:
             results.append(cur)
             cur = came_from[cur]
         results.append(start)
-        return to_path_string(results)
+        results.reverse()
+        return self._to_path_string(results)
 
 
 @dataclass
