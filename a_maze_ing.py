@@ -202,6 +202,32 @@ class MazeGenerator:
         #         そのうち、追加しても 3x3 を作らないものを選ぶ
         # ->左上から3,3のループで見る
         #         辺を追加する
+    def get_shortest_path(self, edges: Edges, start: Coord, goal: Coord) -> str:
+        frontier: list[Coord] = [start]
+        visited: set[Coord] = set()
+        visited.add(start)
+        came_from: dict[Coord, Coord] = {}
+        while frontier and goal not in visited:
+            next_frontier: list[Coord] = []
+            for cur in frontier:
+                for nxt in self.neighbors_with_edge(cur, edges):
+                    if nxt in visited:
+                        continue
+                    next_frontier.append(nxt)
+                    visited.add(nxt)
+                    came_from[nxt] = cur
+            frontier = next_frontier
+        # If goal is impossible, frontier become Empty
+        if goal not in visited:
+            raise ValueError
+        # kari no  error
+        results: list[Coord] = []
+        cur = goal
+        while cur != start:
+            results.append(cur)
+            cur = came_from[cur]
+        results.append(start)
+        return to_path_string(results)
 
 
 @dataclass
@@ -236,7 +262,7 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
 #     visited: bool = False
 
 
-def expression_hex(maze: "Maze") -> str:
+def to_hex(maze: "Maze") -> str:
     width = maze.width
     height = maze.height
     x, y = 0, 0
@@ -247,12 +273,6 @@ def expression_hex(maze: "Maze") -> str:
             tmp.append(format(value, "x"))
         tmp.append('\n')
     return "".join(tmp)
-
-
-def get_shortest_path(maze: "Maze", ent: Coord, ext: Coord) -> str:
-    stack: list[Coord] = []
-    visited: set[Coord] = set()
-    value = 0
 
 
 if __name__ == "__main__":
@@ -269,11 +289,11 @@ if __name__ == "__main__":
     width = config["WIDTH"]
     height = config["HEIGHT"]
 
-    gen = MazeGenerator(57, 45)
+    gen = MazeGenerator(15, 20)
     maze = gen.generate(42, False)
-    gen = MazeGenerator(width, height)
-    maze = gen.generate(42)
-    hex_text = expression_hex(maze)
+    # gen = MazeGenerator(width, height)
+    # maze = gen.generate(42)
+    hex_text = to_hex(maze)
     print(hex_text)
 
     display_maze(hex_text)
