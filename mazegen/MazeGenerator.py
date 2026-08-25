@@ -183,7 +183,7 @@ class MazeGenerator:
         self.open_corners(maze_after)
         for y in range(maze.height):
             for x in range(maze.width):
-                if len(neighbors_with_edge((x, y), maze)) == 1:
+                if len(neighbors_with_edge((x, y), maze_after)) == 1:
                     for cell in self.neighbors_without_edge(
                             (x, y), maze_after.edges):
                         if len(neighbors_with_edge(cell, maze_after)) == 0:
