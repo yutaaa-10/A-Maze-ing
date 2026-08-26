@@ -35,11 +35,13 @@ def clear_terminal() -> None:
 def regenerate_maze(
     generator: MazeGenerator,
     perfect: bool,
+    start: Coord,
+    blocked: set[Coord]
 ) -> tuple[Maze, str, int]:
     """Generate a new maze with a fresh, reproducible seed."""
 
     seed = randbits(SEED_BITS)
-    maze = generator.generate(seed, perfect)
+    maze = generator.generate(seed, perfect, start, blocked)
     hex_text = to_hex(maze)
     return maze, hex_text, seed
 
@@ -156,6 +158,34 @@ def write_hex_file(
         ) from exc
 
 
+def blocked_add(PATTERN: list[list[bool]],  top_left: Coord) -> set[Coord]:
+    #    define　a list defined as a constant
+    # to form the number “42” in a 7-column by 5-row grid,
+    # with one empty cell in the center
+
+    #    define starting point from  upper left cause loop with "for range()"
+
+    blocked: set[Coord] = set()
+    wid = len(PATTERN[0])
+    hei = len(PATTERN)
+    x0, y0 = top_left
+
+    for r in range(hei):
+        for c in range(wid):
+            if PATTERN[r][c]:
+                blocked.add((x0 + c, y0 + r))
+    return blocked
+
+
+def is_addable_42(width: int, height: int, width_42: int, height_42: int) -> bool:
+    return width >= width_42 + 2 and height >= height_42 + 2
+
+
+def is_inside(cell: Coord, width: int, height: int) -> bool:
+    x, y = cell
+    return x >= 0 and x < width and y >= 0 and y < height
+
+
 def main() -> int:
     """Run the maze generator and interactive menu."""
 
@@ -177,12 +207,39 @@ def main() -> int:
     perfect = cast(bool, config["PERFECT"])
     output_file = cast(str, config["OUTPUT_FILE"])
 
+    if not is_inside(entry, width, height):
+        return 1
+    if not is_inside(exit_coord, width, height):
+        return 1
+
     current_seed = 42
     wall_color_index = 0
     show_solution = False
 
-    generator = MazeGenerator(width, height)
-    maze = generator.generate(current_seed, perfect)
+    PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
+                                 [True, False, False, False,
+                                  False, False, True],
+                                 [True, True, True, False, True, True, True],
+                                 [False, False, True, False,
+                                  True, False, False],
+                                 [False, False, True, False, True, True, True]]
+    width_42 = len(PATTERN[0])
+    height_42 = len(PATTERN)
+
+    gen = MazeGenerator(width, height)
+    x = (width - width_42) // 2
+    y = (height - height_42) // 2
+    top_left = x, y
+    if is_addable_42(width, height, width_42, height_42):
+        blocked = blocked_add(PATTERN, top_left)
+    else:
+        blocked = set()
+        print("There isn't enough space to place 42.")
+    try:
+        maze = gen.generate(42, perfect, entry, blocked)
+    except IndexError as e:
+        print(e)
+
     hex_text = to_hex(maze)
 
     try:
@@ -228,8 +285,10 @@ def main() -> int:
             try:
                 new_maze, new_hex_text, new_seed = (
                     regenerate_maze(
-                        generator,
+                        gen,
                         perfect,
+                        entry,
+                        blocked
                     )
                 )
                 new_solution = get_shortest_path(
