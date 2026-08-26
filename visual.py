@@ -95,6 +95,8 @@ def draw_cell(canvas: Canvas, x: int, y: int, value: int) -> None:
         for offset in (-1, 0, 1):
             canvas[center_y + offset][center_x - 1] = True
 
+    canvas[center_y - 1][center_x - 1] = True
+
 
 def find_42_centers(grid: HexGrid) -> set[tuple[int, int]]:
     """Return canvas coordinates of fully closed cells."""
