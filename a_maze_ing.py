@@ -1,185 +1,290 @@
-from dataclasses import dataclass
-import random
-from error_handling import check_date
-from visual import display_maze
 import sys
-from mazegen import MazeGenerator
+from secrets import randbits
+from typing import cast
+
+from error_handling import check_date
+from mazegen.MazeGenerator import (
+    Maze,
+    MazeGenerator,
+    get_shortest_path,
+    to_hex,
+)
+from visual import Color, display_maze
+
+
+WALL_COLORS: tuple[Color, ...] = (
+    Color.WHITE,
+    Color.BLUE,
+    Color.YELLOW,
+    Color.GRAY,
+)
+
+
+SEED_BITS = 32
 
 
 Coord = tuple[int, int]
-Edge = frozenset[Coord]
-Edges = set[Edge]
 
 
+def clear_terminal() -> None:
+    """Clear the terminal and move the cursor to the top-left."""
 
-def wall_bits(edges: Edges, cell: Coord) -> int:
-    x, y = cell
-    value = 0
-    # North
-    if frozenset(((x, y), (x, y - 1))) not in edges:
-        value += 1
-    # East
-    if frozenset(((x, y), (x + 1, y))) not in edges:
-        value += 2
-    # South
-    if frozenset(((x, y), (x, y + 1))) not in edges:
-        value += 4
-    # West
-    if frozenset(((x, y), (x - 1, y))) not in edges:
-        value += 8
-    return value
+    print("\x1b[2J\x1b[H", end="", flush=True)
 
 
+def regenerate_maze(
+    generator: MazeGenerator,
+    perfect: bool,
+) -> tuple[Maze, str, int]:
+    """Generate a new maze with a fresh, reproducible seed."""
 
-def to_hex(maze: "Maze") -> str:
-    width = maze.width
-    height = maze.height
-    x, y = 0, 0
-    tmp: list[str] = []
-    for y in range(height):
-        for x in range(width):
-            value = wall_bits(maze.edges, (x, y))
-            tmp.append(format(value, "x"))
-        tmp.append('\n')
-    return "".join(tmp)
+    seed = randbits(SEED_BITS)
+    maze = generator.generate(seed, perfect)
+    hex_text = to_hex(maze)
+    return maze, hex_text, seed
 
 
-def write_hex_file(filename: str, hex_text: str, entry: Coord, exit: Coord) -> None:
+def rotate_wall_color(
+    current_index: int,
+) -> tuple[int, Color]:
+    """Advance to the next wall colour."""
+
+    next_index = (current_index + 1) % len(WALL_COLORS)
+    return next_index, WALL_COLORS[next_index]
+
+
+def print_menu(
+    show_solution: bool,
+    current_seed: int,
+) -> None:
+    """Display currently available menu operations."""
+
+    if show_solution:
+        solution_label = "Hide Solution"
+    else:
+        solution_label = "Show Solution"
+
+    print()
+    print("===== A-MAZE-ING =====")
+    print()
+    print(f"Current seed: {current_seed}")
+    print("1. Regenerate a New Maze")
+    print(f"2. {solution_label}")
+    print("3. Change Wall Color")
+    print()
+    print("0. Quit")
+    print()
+
+
+def pause(message: str) -> None:
+    """Show a message and wait before redrawing the screen."""
+
+    try:
+        input(f"{message} Press Enter to continue.")
+    except (EOFError, KeyboardInterrupt):
+        print()
+
+
+def solution_menu(
+    hex_text: str,
+    entry: Coord,
+    exit_coord: Coord,
+    solution: str,
+    wall_color: Color,
+    show_solution: bool,
+) -> bool:
+    """Show, hide, and preview the shortest solution path."""
+
+    while True:
+        clear_terminal()
+        visible_path = solution if show_solution else None
+
+        display_maze(
+            hex_text,
+            entry=entry,
+            exit=exit_coord,
+            solution_path=visible_path,
+            wall_color=wall_color,
+        )
+
+        print()
+        print("===== SOLUTION MENU =====")
+        print()
+        print("1. Show Solution")
+        print("2. Hide Solution")
+        print("0. Back to Main Menu")
+        print()
+
+        try:
+            choice = input("select number: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return show_solution
+
+        if choice == "1":
+            show_solution = True
+        elif choice == "2":
+            show_solution = False
+        elif choice == "0":
+            return show_solution
+        else:
+            pause("Invalid input data.")
+
+
+def write_hex_file(
+    filename: str,
+    hex_text: str,
+    entry: Coord,
+    exit_coord: Coord,
+    solution: str,
+) -> None:
+    """Write the hexadecimal maze and coordinates to a file."""
+
     try:
         with open(filename, "w", encoding="utf-8") as file:
             file.write(hex_text)
             file.write("\n")
             file.write(f"{entry[0]},{entry[1]}\n")
-            file.write(f"{exit[0]},{exit[1]}\n")
-    except OSError as e:
-        raise RecursionError(
-            f"Could not write maze to {filename}: {e}"
-        ) from e
+            file.write(
+                f"{exit_coord[0]},{exit_coord[1]}\n"
+            )
+            file.write(f"{solution}\n")
 
-# from secrets import randbits
-# SEED_BITS = 32
-
-# def regenerate_maze(
-#     generator: MazeGenerator,
-#     perfect: bool,
-# ) -> tuple[Maze, str, int]:
-#     """Generate a new maze with a fresh, reproducible seed."""
-
-#     seed = randbits(SEED_BITS)
-#     maze = generator.generate(seed, perfect)
-#     hex_text = to_hex(maze)
-#     return maze, hex_text, seed
-
-# from visual import Color
+    except OSError as exc:
+        raise RuntimeError(
+            f"Could not write maze to {filename}: {exc}"
+        ) from exc
 
 
-# WALL_COLORS: tuple[Color, ...] = (
-#     Color.WHITE,
-#     Color.BLUE,
-#     Color.RED,
-# )
+def main() -> int:
+    """Run the maze generator and interactive menu."""
 
-
-# def rotate_wall_color(
-#     current_index: int,
-# ) -> tuple[int, Color]:
-#     """Advance to the next available wall colour."""
-
-#     next_index = (current_index + 1) % len(WALL_COLORS)
-#     next_color = WALL_COLORS[next_index]
-#     return next_index, next_color
-
-
-
-if __name__ == "__main__":
     if len(sys.argv) != 2:
         print(
             f"Usage: python3 {sys.argv[0]} config.txt",
             file=sys.stderr,
         )
-        raise SystemExit(1)
+        return 1
+
     config = check_date(sys.argv[1])
     if config is None:
-        raise SystemExit(1)
-    print(config)
-    width = config["WIDTH"]
-    height = config["HEIGHT"]
-    entry = config["ENTRY"]
-    exit = config["EXIT"]
-    perfect = config["PERFECT"]
-    output_file = config["OUTPUT_FILE"]
+        return 1
 
-    gen = MazeGenerator(width, height)
-    maze = gen.generate(11, perfect)
+    width = cast(int, config["WIDTH"])
+    height = cast(int, config["HEIGHT"])
+    entry = cast(Coord, config["ENTRY"])
+    exit_coord = cast(Coord, config["EXIT"])
+    perfect = cast(bool, config["PERFECT"])
+    output_file = cast(str, config["OUTPUT_FILE"])
+
+    current_seed = 42
+    wall_color_index = 0
+    show_solution = False
+
+    generator = MazeGenerator(width, height)
+    maze = generator.generate(current_seed, perfect)
     hex_text = to_hex(maze)
 
     try:
-        write_hex_file(output_file, hex_text, entry, exit)
-    except RuntimeError as e:
-        print(f"Error: {e}", file=sys.strderr)
-        raise SyntaxError(1)
-    
-    display_maze(hex_text)
-    print()
+        solution = get_shortest_path(
+            maze,
+            entry,
+            exit_coord,
+        )
+        write_hex_file(
+            output_file,
+            hex_text,
+            entry,
+            exit_coord,
+            solution,
+        )
+    except (RuntimeError, ValueError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
 
-    wall_color_index = 0
-    show_solution = False
-    solution = None
+    while True:
+        clear_terminal()
 
-    # while True:
-    #     clear_terminal()
+        wall_color = WALL_COLORS[wall_color_index]
+        visible_path = solution if show_solution else None
 
-    #     wall_color = WALL_COLORS[wall_color_index]
+        display_maze(
+            hex_text,
+            entry=entry,
+            exit=exit_coord,
+            solution_path=visible_path,
+            wall_color=wall_color,
+        )
 
-    #     print("===== A-Maze-ing =====")
-    #     print(f"Current seed: {current_seed}")
-    #     print()
+        print_menu(show_solution, current_seed)
 
-    #     display_maze(
-    #         hex_text,
-    #         entry=entry,
-    #         exit=exit,
-    #         wall_color=wall_color,
-    #     )
+        try:
+            choice = input("select number: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
 
-    #     print_menu(show_solution, current_seed)
+        if choice == "1":
+            try:
+                new_maze, new_hex_text, new_seed = (
+                    regenerate_maze(
+                        generator,
+                        perfect,
+                    )
+                )
+                new_solution = get_shortest_path(
+                    new_maze,
+                    entry,
+                    exit_coord,
+                )
 
-    #     try:
-    #         choice = input("Select: ").strip()
-    #     except (EOFError, KeyboardInterrupt):
-    #         print()
-    #         break
+                write_hex_file(
+                    output_file,
+                    new_hex_text,
+                    entry,
+                    exit_coord,
+                    new_solution,
+                )
 
-    #     if choice == "1":
-    #         maze, hex_text, current_seed = regenerate_maze(
-    #             gen,
-    #             perfect,
-    #         )
-    #         solution = None
-    #         show_solution = False
+            except (RuntimeError, ValueError) as exc:
+                pause(f"Could not regenerate maze: {exc}")
+                continue
 
-    #     elif choice == "2":
-    #         pass
+            maze = new_maze
+            hex_text = new_hex_text
+            current_seed = new_seed
+            solution = new_solution
+            show_solution = False
 
-    #     elif choice == "3":
-    #         wall_color_index, _ = rotate_wall_color(
-    #             wall_color_index
-    #         )   
+        elif choice == "2":
+            show_solution = solution_menu(
+                hex_text,
+                entry,
+                exit_coord,
+                solution,
+                wall_color,
+                show_solution,
+            )
 
-    #     elif choice == "0":
-    #         break
+        elif choice == "3":
+            wall_color_index, _ = rotate_wall_color(
+                wall_color_index
+            )
 
-    #     else:
-    #         try:
-    #             input(
-    #                 "Invalid input data. "
-    #                 "Press Enter to continue."
-    #             )
-    #         except (EOFError, KeyboardInterrupt):
-    #             print()
-    #             break
+        elif choice == "0":
+            break
 
+        else:
+            pause("Invalid input data.")
 
-    # print(get_shortest_path(maze, ent, ext))
+    print("Goodbye!")
+    return 0
 
 
+if __name__ == "__main__":
+    result = main()
+
+    if result == 0:
+        exit(0)
+    else:
+        exit(result)
