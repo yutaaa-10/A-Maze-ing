@@ -194,11 +194,11 @@ def main() -> int:
             f"Usage: python3 {sys.argv[0]} config.txt",
             file=sys.stderr,
         )
-        return 1
+        return 0
 
     config = check_date(sys.argv[1])
     if config is None:
-        return 1
+        return 0
 
     width = cast(int, config["WIDTH"])
     height = cast(int, config["HEIGHT"])
@@ -208,9 +208,9 @@ def main() -> int:
     output_file = cast(str, config["OUTPUT_FILE"])
 
     if not is_inside(entry, width, height):
-        return 1
+        return 0
     if not is_inside(exit_coord, width, height):
-        return 1
+        return 0
 
     current_seed = 42
     wall_color_index = 0
@@ -257,7 +257,7 @@ def main() -> int:
         )
     except (RuntimeError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
-        return 1
+        return 0
 
     while True:
         clear_terminal()

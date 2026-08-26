@@ -2,16 +2,16 @@ PYTHON := python3
 CONFIG ?= config.txt
 
 install:
-	$(PYTHON) -m pip install flake8 mypy
+	@$(PYTHON) -m pip install flake8 mypy
 
 build:
-	$(PYTHON) -m build
+	@$(PYTHON) -m build
 
 run:
-	$(PYTHON) a_maze_ing.py $(CONFIG)
+	@$(PYTHON) a_maze_ing.py $(CONFIG)
 
 debug:
-	$(PYTHON) -m pdb a_maze_ing.py $(CONFIG)
+	@$(PYTHON) -m pdb a_maze_ing.py $(CONFIG)
 
 clean:
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
