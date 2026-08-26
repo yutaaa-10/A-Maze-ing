@@ -3,11 +3,30 @@ import random
 from error_handling import check_date
 from visual import display_maze
 import sys
+from .mazegen import MazeGenerator
 
 
 Coord = tuple[int, int]
 Edge = frozenset[Coord]
 Edges = set[Edge]
+
+
+
+
+
+
+
+def to_hex(maze: "Maze") -> str:
+    width = maze.width
+    height = maze.height
+    x, y = 0, 0
+    tmp: list[str] = []
+    for y in range(height):
+        for x in range(width):
+            value = wall_bits(maze.edges, (x, y))
+            tmp.append(format(value, "x"))
+        tmp.append('\n')
+    return "".join(tmp)
 
 
 if __name__ == "__main__":

@@ -327,11 +327,6 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
     return value
 
 
-# @dataclass
-# class Cell:
-#     cell: tuple[int, int]
-#     value: int
-#     visited: bool = False
 
 
 def to_hex(maze: "Maze") -> str:
