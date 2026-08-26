@@ -109,10 +109,8 @@ if __name__ == "__main__":
     perfect = config["PERFECT"]
     output_file = config["OUTPUT_FILE"]
 
-    gen = MazeGenerator(3, 3)
-    maze = gen.generate(42, False)
-    # gen = MazeGenerator(width, height)
-    # maze = gen.generate(42)
+    gen = MazeGenerator(width, height)
+    maze = gen.generate(11, perfect)
     hex_text = to_hex(maze)
 
     try:
