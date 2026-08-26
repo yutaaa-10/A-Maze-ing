@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 import random
-from error_handling import check_date
+# from error_handling import check_date
 from visual import display_maze
-import sys
 
 Coord = tuple[int, int]
 Edge = frozenset[Coord]
@@ -14,52 +13,29 @@ class MazeGenerator:
         self.width = width
         self.height = height
 
-    def generate(self, seed: int | None = None, perfect: bool = True) -> "Maze":
+    def generate(self, seed: int | None = None, perfect: bool = True,  start: Coord = (0, 0), blocked: set[Coord] | None = None) -> "Maze":
+        if blocked is None:
+            blocked = set()
         rng = random.Random(seed)
         # Making unique random number generator
         edges: Edges = set()
         visited_nodes: set[Coord] = set()
+        if start in blocked:
+            raise IndexError("enter in blocked")
+        visited_nodes.add(start)
+        visited_nodes.update(blocked)
         stack: list[Coord] = []
 # I changed `edges`, `visited_nodes`,
 # and `stack` to local variables within the `generate` function.
 # Since these variables are only needed for a single call to `generate`,
 # there is no need to maintain them across the entire instance;
 # this change is intended to improve the reusability of the `generate` function.
-
-        start: Coord = (0, 0)
-        visited_nodes.add(start)
         stack.append(start)
         self._explore(rng, edges, visited_nodes, stack)
         maze = Maze(self.width, self.height, edges)
         if not perfect:
             maze = self._braid(maze)
         return maze
-
-    def set_42(self, visited_nodes: set[Coord]) -> None:
-        #    define　a list defined as a constant
-        # to form the number “42” in a 7-column by 5-row grid,
-        # with one empty cell in the center
-        PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
-                                     [True, False, False, False,
-                                         False, False, True],
-                                     [True, True, True, False, True, True, True],
-                                     [False, False, True, False,
-                                         True, False, False],
-                                     [False, False, True, False, True, True, True]]
-    #    define starting point from  upper left cause loop with "for range()"
-
-        wide_42 = len(PATTERN[0])
-        height_42 = len(PATTERN)
-        x0 = (self.width - wide_42) // 2
-        y0 = (self.height - height_42) // 2
-        for r in range(height_42):
-            for c in range(wide_42):
-                if PATTERN[r][c]:
-                    visited_nodes.add((x0 + c, y0 + r))
-
-#         Simply by adding it to `visited_nodes`,
-# a path through the spanning tree is created that avoids it.
-# So, a single isolated “42” is created.
 
     def _explore(
             self,
@@ -68,7 +44,6 @@ class MazeGenerator:
             visited_nodes: set[Coord],
             stack: list[Coord],
     ) -> None:
-        self.set_42(visited_nodes)
         while stack:
             cur = stack[-1]
             unvisited: list[Coord] = self._unvisited_neighbors(
@@ -93,49 +68,8 @@ class MazeGenerator:
         ]
         return [
             n for n in neighbors
-            if self._is_inside(n) and n not in visited_nodes
+            if _is_inside(n, self.width, self.height) and n not in visited_nodes
         ]
-
-    def _is_inside(self, cell: Coord) -> bool:
-        x, y = cell
-        return x >= 0 and x < self.width and y >= 0 and y < self.height
-
-    @staticmethod
-    def open_corners(maze: "Maze") -> None:
-        w, h = maze.width, maze.height
-        maze.edges.update(
-            {
-                # top_left (0, 0) -> 右, 下
-                frozenset(((0, 0), (1, 0))),
-                frozenset(((0, 0), (0, 1))),
-                # bottom_left (0, h - 1) -> 右, 上
-                frozenset(((0, h - 1), (1, h - 1))),
-                frozenset(((0, h - 1), (0, h - 2))),
-                # top_right (w - 1, 0) -> 左, 下
-                frozenset(((w - 1, 0), (w - 2, 0))),
-                frozenset(((w - 1, 0), (w - 1, 1))),
-                # bottom_right (w - 1, h - 1) -> 左, 上
-                frozenset(((w - 1, h - 1), (w - 2, h - 1))),
-                frozenset(((w - 1, h - 1), (w - 1, h - 2))),
-            }
-        )
-
-    def neighbors_without_edge(self, cell: Coord, edges: Edges) -> list[Coord]:
-        x, y = cell
-        neighbors: list[Coord] = [
-            (x, y - 1),  # north
-            (x + 1, y),  # east
-            (x, y + 1),  # south
-            (x - 1, y),  # west
-        ]
-        return [
-            n for n in neighbors
-            if self._is_inside(n) and frozenset((cell, n)) not in edges
-        ]
-
-    def _cell_is_inside_square(self, cell: Coord, lx: int, ux: int, ly: int, uy: int) -> bool:
-        x, y = cell
-        return lx <= x and x <= ux and ly <= y and y <= uy
 
     def _is_addable_edge(self, p1: Coord, p2: Coord, n: int, edges: Edges) -> bool:
         candidate = frozenset((p1, p2))
@@ -163,29 +97,18 @@ class MazeGenerator:
                             ((x + c, y + r + 1), (x + c, y + r)))
                         if r + 1 < n and edge in edges_after:
                             tmp.add(edge)
-
-                        # legacy]
-
-                        # for cell in neighbors_with_edge(
-                        #         (x + c, y + r), edges_after):
-                        #     if self._cell_is_inside_square(cell, x,
-                        #                                    x + n - 1,
-                        #                                    y,
-                        #                                    y + n - 1):
-
-                        # tmp.add(frozenset((cell, (x + c, y + r))))
                 if len(tmp) == max_edges_in_grid:
                     return False
         return True
 
     def _braid(self, maze: "Maze") -> "Maze":
         maze_after = Maze(maze.width, maze.height, set(maze.edges))
-        self.open_corners(maze_after)
+        # self.open_corners(maze_after)
         for y in range(maze.height):
             for x in range(maze.width):
                 if len(neighbors_with_edge((x, y), maze_after)) == 1:
-                    for cell in self.neighbors_without_edge(
-                            (x, y), maze_after.edges):
+                    for cell in neighbors_without_edge(
+                            (x, y), maze_after):
                         if len(neighbors_with_edge(cell, maze_after)) == 0:
                             continue
                         if self._is_addable_edge((x, y), cell, 3, maze_after.edges):
@@ -199,46 +122,6 @@ class MazeGenerator:
         #         そのうち、追加しても 3x3 を作らないものを選ぶ
         # ->左上から3,3のループで見る
         #         辺を追加する
-
-    # def _to_path_string(self, results: list[Coord]) -> str:
-    #     paths: list[str] = []
-    #     cur = results[0]
-    #     dr: dict[Coord, str] = {
-    #         (0, -1): "N", (1, 0): "E", (0, 1): "S", (-1, 0): "W"}
-    #     for cell in results[1:]:
-    #         dx = cell[0] - cur[0]
-    #         dy = cell[1] - cur[1]
-    #         paths.append(dr[(dx, dy)])
-    #         cur = cell
-    #     return "".join(paths)
-
-    # def get_shortest_path(self, edges: Edges, start: Coord, goal: Coord) -> str:
-    #     frontier: list[Coord] = [start]
-    #     visited: set[Coord] = set()
-    #     visited.add(start)
-    #     came_from: dict[Coord, Coord] = {}
-    #     while frontier and goal not in visited:
-    #         next_frontier: list[Coord] = []
-    #         for cur in frontier:
-    #             for nxt in neighbors_with_edge(cur, edges):
-    #                 if nxt in visited:
-    #                     continue
-    #                 next_frontier.append(nxt)
-    #                 visited.add(nxt)
-    #                 came_from[nxt] = cur
-    #         frontier = next_frontier
-    #     # If goal is impossible, frontier become Empty
-    #     if goal not in visited:
-    #         raise ValueError
-    #     # kari no  error
-    #     results: list[Coord] = []
-    #     cur = goal
-    #     while cur != start:
-    #         results.append(cur)
-    #         cur = came_from[cur]
-    #     results.append(start)
-    #     results.reverse()
-    #     return self._to_path_string(results)
 
 
 def _to_path_string(results: list[Coord]) -> str:
@@ -297,6 +180,20 @@ def neighbors_with_edge(cell: Coord, maze: "Maze") -> list[Coord]:
     ]
 
 
+def neighbors_without_edge(cell: Coord, maze: "Maze") -> list[Coord]:
+    x, y = cell
+    neighbors: list[Coord] = [
+        (x, y - 1),  # north
+        (x + 1, y),  # east
+        (x, y + 1),  # south
+        (x - 1, y),  # west
+    ]
+    return [
+        n for n in neighbors
+        if _is_inside(n, maze.width, maze.height) and frozenset((cell, n)) not in maze.edges
+    ]
+
+
 def _is_inside(cell: Coord, width: int, height: int) -> bool:
     x, y = cell
     return x >= 0 and x < width and y >= 0 and y < height
@@ -327,8 +224,6 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
     return value
 
 
-
-
 def to_hex(maze: "Maze") -> str:
     width = maze.width
     height = maze.height
@@ -340,3 +235,57 @@ def to_hex(maze: "Maze") -> str:
             tmp.append(format(value, "x"))
         tmp.append('\n')
     return "".join(tmp)
+
+
+def blocked_add(PATTERN: list[list[bool]],  top_left: Coord) -> set[Coord]:
+    #    define　a list defined as a constant
+    # to form the number “42” in a 7-column by 5-row grid,
+    # with one empty cell in the center
+
+    #    define starting point from  upper left cause loop with "for range()"
+
+    blocked: set[Coord] = set()
+    wid = len(PATTERN[0])
+    hei = len(PATTERN)
+    x0, y0 = top_left
+
+    for r in range(hei):
+        for c in range(wid):
+            if PATTERN[r][c]:
+                blocked.add((x0 + c, y0 + r))
+    return blocked
+
+
+def is_addable_42(width: int, height: int, width_42: int, height_42: int) -> bool:
+    return width >= width_42 + 2 and height >= height_42 + 2
+
+
+if __name__ == '__main__':
+
+    PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
+                                 [True, False, False, False,
+                                  False, False, True],
+                                 [True, True, True, False, True, True, True],
+                                 [False, False, True, False,
+                                  True, False, False],
+                                 [False, False, True, False, True, True, True]]
+    width_42 = len(PATTERN[0])
+    height_42 = len(PATTERN)
+    width = 15
+    height = 20
+    start = (0, 1)
+
+    gen = MazeGenerator(width, height)
+    x = (width - width_42) // 2
+    y = (height - height_42) // 2
+    top_left = x, y
+    if is_addable_42(width, height, width_42, height_42):
+        blocked = blocked_add(PATTERN, top_left)
+    else:
+        blocked = set()
+        print("There isn't enough space to place 42.")
+    try:
+        maze = gen.generate(42, False, (2, 1), blocked)
+    except IndexError as e:
+        print(e)
+    display_maze(to_hex(maze))
