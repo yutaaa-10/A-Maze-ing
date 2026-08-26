@@ -206,7 +206,7 @@ def render_canvas(
     solution_block = color_block(solution_color)
     output: list[str] = []
 
-    for canvas_y, row in zz(canvas):
+    for canvas_y, row in enumerate(canvas):
         output_row: list[str] = []
 
         for canvas_x, is_wall in enumerate(row):
