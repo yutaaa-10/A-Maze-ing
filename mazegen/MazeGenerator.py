@@ -258,34 +258,3 @@ def blocked_add(PATTERN: list[list[bool]],  top_left: Coord) -> set[Coord]:
 
 def is_addable_42(width: int, height: int, width_42: int, height_42: int) -> bool:
     return width >= width_42 + 2 and height >= height_42 + 2
-
-
-if __name__ == '__main__':
-
-    PATTERN: list[list[bool]] = [[True, False, False, False, True, True, True],
-                                 [True, False, False, False,
-                                  False, False, True],
-                                 [True, True, True, False, True, True, True],
-                                 [False, False, True, False,
-                                  True, False, False],
-                                 [False, False, True, False, True, True, True]]
-    width_42 = len(PATTERN[0])
-    height_42 = len(PATTERN)
-    width = 15
-    height = 20
-    start = (0, 1)
-
-    gen = MazeGenerator(width, height)
-    x = (width - width_42) // 2
-    y = (height - height_42) // 2
-    top_left = x, y
-    if is_addable_42(width, height, width_42, height_42):
-        blocked = blocked_add(PATTERN, top_left)
-    else:
-        blocked = set()
-        print("There isn't enough space to place 42.")
-    try:
-        maze = gen.generate(42, False, (2, 1), blocked)
-    except IndexError as e:
-        print(e)
-    display_maze(to_hex(maze))
