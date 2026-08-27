@@ -9,15 +9,6 @@ PIXEL_WIDTH = 2
 
 HexGrid = list[list[int]]
 Canvas = list[list[bool]]
-Coord = tuple[int, int]
-CanvasPosition = tuple[int, int]
-
-DIRECTIONS: dict[str, Coord] = {
-    "N": (0, -1),
-    "E": (1, 0),
-    "S": (0, 1),
-    "W": (-1, 0),
-}
 
 
 class Color(Enum):
@@ -114,7 +105,7 @@ def find_42_centers(grid: HexGrid) -> set[tuple[int, int]]:
 
 
 def cell_to_canvas_center(
-    cell: Coord,
+    cell: tuple[int, int],
     width: int,
     height: int,
     name: str,
@@ -133,50 +124,6 @@ def cell_to_canvas_center(
     return (center_x, center_y)
 
 
-def path_to_canvas_positions(
-    start: Coord,
-    path: str,
-    width: int,
-    height: int,
-) -> set[CanvasPosition]:
-    """Convert a N/E/S/W path into connected canvas positions."""
-
-    x, y = start
-    if not (0 <= x < width and 0 <= y < height):
-        raise ValueError("Solution start is outside the maze.")
-
-    center_x = x * 2 + 1
-    center_y = y * 2 + 1
-    positions: set[CanvasPosition] = {(center_x, center_y)}
-
-    for direction in path:
-        if direction not in DIRECTIONS:
-            raise ValueError(
-                f"Invalid solution direction: {direction}"
-            )
-
-        dx, dy = DIRECTIONS[direction]
-        next_x = x + dx
-        next_y = y + dy
-        if not (0 <= next_x < width and 0 <= next_y < height):
-            raise ValueError("Solution path goes outside the maze.")
-
-        next_center_x = next_x * 2 + 1
-        next_center_y = next_y * 2 + 1
-        middle_x = (center_x + next_center_x) // 2
-        middle_y = (center_y + next_center_y) // 2
-
-        positions.add((middle_x, middle_y))
-        positions.add((next_center_x, next_center_y))
-
-        x = next_x
-        y = next_y
-        center_x = next_center_x
-        center_y = next_center_y
-
-    return positions
-
-
 def color_block(color: Color) -> str:
     """Return one 2-character by 1-line block in an RGB colour."""
 
@@ -190,13 +137,11 @@ def render_canvas(
     pattern_centers: set[tuple[int, int]],
     entry_center: tuple[int, int] | None,
     exit_center: tuple[int, int] | None,
-    solution_positions: set[CanvasPosition],
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
     pattern_color: Color = Color.GRAY,
     entry_color: Color = Color.GREEN,
     exit_color: Color = Color.YELLOW,
-    solution_color: Color = Color.RED,
 ) -> str:
     """Convert a logical canvas to an ANSI-coloured terminal string."""
 
@@ -205,7 +150,6 @@ def render_canvas(
     pattern_block = color_block(pattern_color)
     entry_block = color_block(entry_color)
     exit_block = color_block(exit_color)
-    solution_block = color_block(solution_color)
     output: list[str] = []
 
     for canvas_y, row in enumerate(canvas):
@@ -218,8 +162,6 @@ def render_canvas(
                 output_row.append(entry_block)
             elif position == exit_center:
                 output_row.append(exit_block)
-            elif position in solution_positions:
-                output_row.append(solution_block)
             elif position in pattern_centers:
                 output_row.append(pattern_block)
             elif is_wall:
@@ -236,13 +178,11 @@ def render_maze(
     hex_text: str,
     entry: tuple[int, int] | None = None,
     exit: tuple[int, int] | None = None,
-    solution_path: str | None = None,
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
     pattern_color: Color = Color.GRAY,
     entry_color: Color = Color.GREEN,
     exit_color: Color = Color.YELLOW,
-    solution_color: Color = Color.RED,
 ) -> str:
 
     grid = parse_hex_maze(hex_text)
@@ -251,7 +191,6 @@ def render_maze(
     canvas = create_canvas(width, height)
     entry_center = None
     exit_center = None
-    solution_positions: set[CanvasPosition] = set()
 
     if entry is not None:
         entry_center = cell_to_canvas_center(
@@ -269,18 +208,6 @@ def render_maze(
             "EXIT",
         )
 
-    if solution_path is not None:
-        if entry is None:
-            raise ValueError(
-                "ENTRY is required to draw the solution."
-            )
-        solution_positions = path_to_canvas_positions(
-            entry,
-            solution_path,
-            width,
-            height,
-        )
-
     for y, row in enumerate(grid):
         for x, value in enumerate(row):
             draw_cell(canvas, x, y, value)
@@ -292,13 +219,11 @@ def render_maze(
         pattern_centers,
         entry_center,
         exit_center,
-        solution_positions,
         wall_color=wall_color,
         corridor_color=corridor_color,
         pattern_color=pattern_color,
         entry_color=entry_color,
         exit_color=exit_color,
-        solution_color=solution_color,
     )
 
 
@@ -306,13 +231,11 @@ def display_maze(
     hex_text: str,
     entry: tuple[int, int] | None = None,
     exit: tuple[int, int] | None = None,
-    solution_path: str | None = None,
     wall_color: Color = Color.WHITE,
     corridor_color: Color = Color.BLACK,
     pattern_color: Color = Color.GRAY,
     entry_color: Color = Color.GREEN,
     exit_color: Color = Color.YELLOW,
-    solution_color: Color = Color.RED,
 ) -> None:
     """Print hexadecimal maze data as a coloured terminal maze."""
 
@@ -320,11 +243,9 @@ def display_maze(
         hex_text,
         entry=entry,
         exit=exit,
-        solution_path=solution_path,
         wall_color=wall_color,
         corridor_color=corridor_color,
         pattern_color=pattern_color,
         entry_color=entry_color,
         exit_color=exit_color,
-        solution_color=solution_color,
     ))
