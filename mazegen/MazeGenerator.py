@@ -1,3 +1,9 @@
+"""Maze generation and path finding.
+
+A maze is stored as a set of edges. Each edge is a frozenset holding the
+coordinates of two adjacent cells, and its presence means the two cells
+are connected. Walls are the absence of an edge.
+"""
 from dataclasses import dataclass
 import random
 
@@ -8,7 +14,20 @@ Edges = set[Edge]
 
 
 class MazeGenerator:
+    """Builds mazes of a fixed size.
+
+    Attributes:
+        width: Board width in cells.
+        height: Board height in cells.
+    """
+
     def __init__(self, width: int, height: int) -> None:
+        """Store the board size.
+
+        Args:
+            width: Board width in cells.
+            height: Board height in cells.
+        """
         self.width = width
         self.height = height
 
@@ -17,6 +36,20 @@ class MazeGenerator:
                  start: Coord = (0, 0),
                  blocked: set[Coord] | None = None
                  ) -> "Maze":
+        """Build a maze with the recursive backtracker algorithm.
+
+        Args:
+            seed: Seed for the random number generator.
+            perfect: If False, extra edges are added so that loops exist.
+            start: Cell the search begins from.
+            blocked: Cells that must stay unreachable.
+
+        Returns:
+            The generated maze.
+
+        Raises:
+            ValueError: If start is one of the blocked cells.
+        """
         if blocked is None:
             blocked = set()
         rng = random.Random(seed)
@@ -42,6 +75,17 @@ class MazeGenerator:
             visited_nodes: set[Coord],
             stack: list[Coord],
     ) -> None:
+        """Walk to unvisited neighbours, backtracking at dead ends.
+
+        Args:
+            rng: Random number generator used to pick the next cell.
+            edges: Edges collected so far. Modified in place.
+            visited_nodes: Cells already reached. Modified in place.
+            stack: Path to the current cell. Modified in place.
+
+        Returns:
+            None. A cell is entered once, so the edges form a spanning tree.
+        """
         while stack:
             cur = stack[-1]
             unvisited: list[Coord] = self._unvisited_neighbors(
@@ -57,6 +101,15 @@ class MazeGenerator:
     def _unvisited_neighbors(
         self, cell: Coord, visited_nodes: set[Coord]
     ) -> list[Coord]:
+        """Find the neighbours of a cell that have not been reached.
+
+        Args:
+            cell: Cell to look around.
+            visited_nodes: Cells already reached.
+
+        Returns:
+            Neighbours inside the board, in north, east, south, west order.
+        """
         x, y = cell
         neighbors: list[Coord] = [
             (x, y - 1),  # north
@@ -77,6 +130,20 @@ class MazeGenerator:
                          n: int,
                          edges: Edges
                          ) -> bool:
+        """Check that an edge can be added without opening an n x n area.
+
+        Only blocks containing both endpoints can be affected, so the
+        search is limited to that range.
+
+        Args:
+            p1: One endpoint of the candidate edge.
+            p2: The other endpoint, adjacent to p1.
+            n: Side length of the forbidden open area, in cells.
+            edges: Current edges. Not modified.
+
+        Returns:
+            True if every n x n block keeps at least one wall inside it.
+        """
         candidate = frozenset((p1, p2))
         edges_after = edges | {candidate}
         x1, y1 = p1
@@ -89,8 +156,8 @@ class MazeGenerator:
         for y in range(lo_limit_y, up_limit_y + 1):
             for x in range(lo_limit_x, up_limit_x + 1):
                 tmp: Edges = set()
-                for r in range(3):
-                    for c in range(3):
+                for r in range(n):
+                    for c in range(n):
                         edge = frozenset(
                             ((x + c + 1, y + r), (x + c, y + r)))
                         if c + 1 < n and edge in edges_after:
@@ -104,8 +171,19 @@ class MazeGenerator:
         return True
 
     def _braid(self, maze: "Maze") -> "Maze":
+        """Open one wall at each dead end, so that loops exist.
+
+        Cells with no edge at all are skipped, so blocked cells stay
+        closed. A dead end is left as it is when every candidate would
+        open a 3 x 3 area.
+
+        Args:
+            maze: Maze to braid. Not modified.
+
+        Returns:
+            A new maze holding a copy of the edges plus the added ones.
+        """
         maze_after = Maze(maze.width, maze.height, set(maze.edges))
-        # self.open_corners(maze_after)
         for y in range(maze.height):
             for x in range(maze.width):
                 if len(neighbors_with_edge((x, y), maze_after)) == 1:
@@ -121,15 +199,16 @@ class MazeGenerator:
                             break
         return maze_after
 
-        # すべてのセルについて:
-        #     もしそれが行き止まりなら:
-        #         辺を持っていない隣を集める
-        #         そのうち、追加しても 3x3 を作らないものを選ぶ
-        # ->左上から3,3のループで見る
-        #         辺を追加する
-
 
 def _to_path_string(results: list[Coord]) -> str:
+    """Turn a list of cells into a string of direction letters.
+
+    Args:
+        results: Adjacent cells, from start to goal.
+
+    Returns:
+        One letter per step, using N, E, S and W.
+    """
     paths: list[str] = []
     cur = results[0]
     dr: dict[Coord, str] = {
@@ -143,6 +222,22 @@ def _to_path_string(results: list[Coord]) -> str:
 
 
 def get_shortest_path(maze: "Maze", start: Coord, goal: Coord) -> str:
+    """Find the shortest path between two cells.
+
+    The maze is explored one layer at a time, so a cell is always reached
+    by a shortest route the first time it is seen.
+
+    Args:
+        maze: Maze to walk through.
+        start: Cell to start from.
+        goal: Cell to reach.
+
+    Returns:
+        One letter per step, using N, E, S and W.
+
+    Raises:
+        ValueError: If goal cannot be reached from start.
+    """
     frontier: list[Coord] = [start]
     visited: set[Coord] = set()
     visited.add(start)
@@ -172,10 +267,19 @@ def get_shortest_path(maze: "Maze", start: Coord, goal: Coord) -> str:
 
 
 def neighbors_with_edge(cell: Coord, maze: "Maze") -> list[Coord]:
+    """Find the neighbours a cell can be reached from.
+
+    Args:
+        cell: Cell to look around.
+        maze: Maze holding the edges.
+
+    Returns:
+        Neighbours inside the board, in north, east, south, west order.
+    """
     x, y = cell
     neighbors: list[Coord] = [
         (x, y - 1),  # north
-        (x + 1, y),  # east_unvisited_neighbors
+        (x + 1, y),  # east
         (x, y + 1),  # south
         (x - 1, y),  # west
     ]
@@ -187,6 +291,15 @@ def neighbors_with_edge(cell: Coord, maze: "Maze") -> list[Coord]:
 
 
 def neighbors_without_edge(cell: Coord, maze: "Maze") -> list[Coord]:
+    """Find the neighbours a cell is walled off from.
+
+    Args:
+        cell: Cell to look around.
+        maze: Maze holding the edges.
+
+    Returns:
+        Neighbours inside the board, in north, east, south, west order.
+    """
     x, y = cell
     neighbors: list[Coord] = [
         (x, y - 1),  # north
@@ -202,18 +315,48 @@ def neighbors_without_edge(cell: Coord, maze: "Maze") -> list[Coord]:
 
 
 def _is_inside(cell: Coord, width: int, height: int) -> bool:
+    """Check that a cell lies within the board.
+
+    Args:
+        cell: Cell to test.
+        width: Board width in cells.
+        height: Board height in cells.
+
+    Returns:
+        True if both coordinates are within range.
+    """
     x, y = cell
     return x >= 0 and x < width and y >= 0 and y < height
 
 
 @dataclass
 class Maze:
+    """A generated maze.
+
+    Attributes:
+        width: Board width in cells.
+        height: Board height in cells.
+        edges: Connections between cells. Each entry is a frozenset of two
+            adjacent coordinates, and its presence means the two cells are
+            connected.
+    """
+
     width: int
     height: int
     edges: Edges
 
 
 def wall_bits(edges: Edges, cell: Coord) -> int:
+    """Encode the walls of one cell as a bit field.
+
+    Args:
+        edges: Connections between cells.
+        cell: Cell to encode.
+
+    Returns:
+        A value between 0 and 15, setting 1 north, 2 east, 4 south, 8 west
+        for each closed wall. The outer border counts as closed.
+    """
     x, y = cell
     value = 0
     # North
@@ -232,6 +375,15 @@ def wall_bits(edges: Edges, cell: Coord) -> int:
 
 
 def to_hex(maze: "Maze") -> str:
+    """Convert a maze to its hexadecimal representation.
+
+    Args:
+        maze: Maze to convert.
+
+    Returns:
+        One digit per cell and one line per row. See wall_bits for the
+        meaning of a digit.
+    """
     width = maze.width
     height = maze.height
     x, y = 0, 0
