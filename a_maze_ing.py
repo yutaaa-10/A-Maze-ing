@@ -1,7 +1,7 @@
 import sys
 from typing import cast
 
-from error_handling import check_date
+from config_check.error_handling import check_date
 from mazegen.MazeGenerator import (
     MazeGenerator,
     get_shortest_path,
