@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import random
-# from error_handling import check_date
-from visual import display_maze
+
 
 Coord = tuple[int, int]
 Edge = frozenset[Coord]
@@ -13,7 +12,11 @@ class MazeGenerator:
         self.width = width
         self.height = height
 
-    def generate(self, seed: int | None = None, perfect: bool = True,  start: Coord = (0, 0), blocked: set[Coord] | None = None) -> "Maze":
+    def generate(self, seed: int | None = None,
+                 perfect: bool = True,
+                 start: Coord = (0, 0),
+                 blocked: set[Coord] | None = None
+                 ) -> "Maze":
         if blocked is None:
             blocked = set()
         rng = random.Random(seed)
@@ -25,11 +28,6 @@ class MazeGenerator:
         visited_nodes.add(start)
         visited_nodes.update(blocked)
         stack: list[Coord] = []
-# I changed `edges`, `visited_nodes`,
-# and `stack` to local variables within the `generate` function.
-# Since these variables are only needed for a single call to `generate`,
-# there is no need to maintain them across the entire instance;
-# this change is intended to improve the reusability of the `generate` function.
         stack.append(start)
         self._explore(rng, edges, visited_nodes, stack)
         maze = Maze(self.width, self.height, edges)
@@ -68,10 +66,17 @@ class MazeGenerator:
         ]
         return [
             n for n in neighbors
-            if _is_inside(n, self.width, self.height) and n not in visited_nodes
+            if _is_inside(n, self.width,
+                          self.height) and n
+            not in visited_nodes
         ]
 
-    def _is_addable_edge(self, p1: Coord, p2: Coord, n: int, edges: Edges) -> bool:
+    def _is_addable_edge(self,
+                         p1: Coord,
+                         p2: Coord,
+                         n: int,
+                         edges: Edges
+                         ) -> bool:
         candidate = frozenset((p1, p2))
         edges_after = edges | {candidate}
         x1, y1 = p1
@@ -86,13 +91,10 @@ class MazeGenerator:
                 tmp: Edges = set()
                 for r in range(3):
                     for c in range(3):
-                        # if _is_inside((x + c, y + r), self.width, self.height):
-                        # right
                         edge = frozenset(
                             ((x + c + 1, y + r), (x + c, y + r)))
                         if c + 1 < n and edge in edges_after:
                             tmp.add(edge)
-                        # down
                         edge = frozenset(
                             ((x + c, y + r + 1), (x + c, y + r)))
                         if r + 1 < n and edge in edges_after:
@@ -111,7 +113,10 @@ class MazeGenerator:
                             (x, y), maze_after):
                         if len(neighbors_with_edge(cell, maze_after)) == 0:
                             continue
-                        if self._is_addable_edge((x, y), cell, 3, maze_after.edges):
+                        if self._is_addable_edge((x, y),
+                                                 cell,
+                                                 3,
+                                                 maze_after.edges):
                             maze_after.edges.add(frozenset(((x, y), cell)))
                             break
         return maze_after
@@ -176,7 +181,8 @@ def neighbors_with_edge(cell: Coord, maze: "Maze") -> list[Coord]:
     ]
     return [
         n for n in neighbors
-        if _is_inside(n, maze.width, maze.height) and frozenset((cell, n)) in maze.edges
+        if _is_inside(n, maze.width, maze.height)
+        and frozenset((cell, n)) in maze.edges
     ]
 
 
@@ -190,7 +196,8 @@ def neighbors_without_edge(cell: Coord, maze: "Maze") -> list[Coord]:
     ]
     return [
         n for n in neighbors
-        if _is_inside(n, maze.width, maze.height) and frozenset((cell, n)) not in maze.edges
+        if _is_inside(n, maze.width, maze.height) and
+        frozenset((cell, n)) not in maze.edges
     ]
 
 
@@ -235,4 +242,3 @@ def to_hex(maze: "Maze") -> str:
             tmp.append(format(value, "x"))
         tmp.append('\n')
     return "".join(tmp)
-
