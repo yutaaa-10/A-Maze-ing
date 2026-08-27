@@ -1,0 +1,96 @@
+from visual import Color, display_maze
+
+from .constants import Coord, WALL_COLORS
+
+
+def clear_terminal() -> None:
+    """Clear the terminal and move the cursor to the top-left."""
+
+    print("\x1b[2J\x1b[H", end="", flush=True)
+
+
+def rotate_wall_color(
+    current_index: int,
+) -> tuple[int, Color]:
+    """Advance to the next wall colour."""
+
+    next_index = (current_index + 1) % len(WALL_COLORS)
+    return next_index, WALL_COLORS[next_index]
+
+
+def print_menu(
+    show_solution: bool,
+    current_seed: int,
+) -> None:
+    """Display currently available menu operations."""
+
+    if show_solution:
+        solution_label = "Hide Solution"
+    else:
+        solution_label = "Show Solution"
+
+    print()
+    print("===== A-MAZE-ING =====")
+    print()
+    print(f"Current seed: {current_seed}")
+    print("1. Regenerate a New Maze")
+    print(f"2. {solution_label}")
+    print("3. Change Wall Color")
+    print()
+    print("0. Quit")
+    print()
+
+
+def pause(message: str) -> None:
+    """Show a message and wait before redrawing the screen."""
+
+    try:
+        input(f"{message} Press Enter to continue.")
+    except (EOFError, KeyboardInterrupt):
+        print()
+
+
+def solution_menu(
+    hex_text: str,
+    entry: Coord,
+    exit_coord: Coord,
+    solution: str,
+    wall_color: Color,
+    show_solution: bool,
+) -> bool:
+    """Show, hide, and preview the shortest solution path."""
+
+    while True:
+        clear_terminal()
+        visible_path = solution if show_solution else None
+
+        display_maze(
+            hex_text,
+            entry=entry,
+            exit=exit_coord,
+            solution_path=visible_path,
+            wall_color=wall_color,
+        )
+
+        print()
+        print("===== SOLUTION MENU =====")
+        print()
+        print("1. Show Solution")
+        print("2. Hide Solution")
+        print("0. Back to Main Menu")
+        print()
+
+        try:
+            choice = input("select number: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return show_solution
+
+        if choice == "1":
+            show_solution = True
+        elif choice == "2":
+            show_solution = False
+        elif choice == "0":
+            return show_solution
+        else:
+            pause("Invalid input data.")
