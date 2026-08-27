@@ -11,7 +11,6 @@ from source.constants import Coord, WALL_COLORS
 from source.maze_operations import (
     blocked_add,
     is_addable_42,
-    is_inside,
     regenerate_maze,
 )
 from source.menu import (

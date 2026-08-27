@@ -59,7 +59,6 @@ def read_config(filename: str) -> dict[str, ConfigValue]:
             for line_number, raw_line in enumerate(file, start=1):
                 line = raw_line.strip()
 
-
                 # Empty lines and comments
                 if not line or line.startswith("#"):
                     continue
@@ -197,7 +196,6 @@ def validate_config(config: dict[str, ConfigValue]) -> None:
 def check_date(
         filename: str,
 ) -> dict[str, ConfigValue] | None:
-    
     try:
         config = read_config(filename)
 

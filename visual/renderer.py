@@ -14,6 +14,7 @@ from .canvas import (
 
 PIXEL_WIDTH = 2
 
+
 class Color(Enum):
     """RGB colours available for walls and corridors."""
 
@@ -24,6 +25,7 @@ class Color(Enum):
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
     YELLOW = (255, 255, 0)
+
 
 def color_block(color: Color) -> str:
     """Return one 2-character by 1-line block in an RGB colour."""
