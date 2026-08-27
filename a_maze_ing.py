@@ -108,7 +108,7 @@ def main() -> int:
             wall_color=wall_color,
         )
 
-        print_menu(show_solution, current_seed)
+        print_menu(show_solution)
 
         try:
             choice = input("select number: ").strip()
