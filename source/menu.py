@@ -20,7 +20,6 @@ def rotate_wall_color(
 
 def print_menu(
     show_solution: bool,
-    current_seed: int,
 ) -> None:
     """Display currently available menu operations."""
 
@@ -32,7 +31,6 @@ def print_menu(
     print()
     print("===== A-MAZE-ING =====")
     print()
-    print(f"Current seed: {current_seed}")
     print("1. Regenerate a New Maze")
     print(f"2. {solution_label}")
     print("3. Change Wall Color")

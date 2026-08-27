@@ -1,7 +1,7 @@
 import sys
 from typing import cast
 
-from error_handling import check_date
+from config_check.error_handling import check_date
 from mazegen.MazeGenerator import (
     MazeGenerator,
     get_shortest_path,
@@ -11,7 +11,6 @@ from source.constants import Coord, WALL_COLORS
 from source.maze_operations import (
     blocked_add,
     is_addable_42,
-    is_inside,
     regenerate_maze,
 )
 from source.menu import (
@@ -108,7 +107,7 @@ def main() -> int:
             wall_color=wall_color,
         )
 
-        print_menu(show_solution, current_seed)
+        print_menu(show_solution)
 
         try:
             choice = input("select number: ").strip()

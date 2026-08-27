@@ -7,7 +7,12 @@ name = "mazegen"
 version = "1.0.0"
 description = "Reusable maze generator for A-Maze_ing"
 requires-python = ">=3.10"
+readme = "mazegen/README.md"
+license-files = ["LICENSE.md"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mazegen*"]
+
+[tool.setuptools.package-data]
+mazegen = ["README.md"]
