@@ -25,12 +25,12 @@ from source.output import write_hex_file
 from visual import display_maze
 
 PATTERN_42: list[list[bool]] = [[True, False, False, False, True, True, True],
-                                 [True, False, False, False,
-                                  False, False, True],
-                                 [True, True, True, False, True, True, True],
-                                 [False, False, True, False,
-                                  True, False, False],
-                                 [False, False, True, False, True, True, True]]
+                                [True, False, False, False,
+                                 False, False, True],
+                                [True, True, True, False, True, True, True],
+                                [False, False, True, False,
+                                 True, False, False],
+                                [False, False, True, False, True, True, True]]
 
 
 def main() -> int:
@@ -53,16 +53,9 @@ def main() -> int:
     exit_coord = cast(Coord, config["EXIT"])
     perfect = cast(bool, config["PERFECT"])
     output_file = cast(str, config["OUTPUT_FILE"])
-
-    if not is_inside(entry, width, height):
-        return 0
-    if not is_inside(exit_coord, width, height):
-        return 0
-
     current_seed = 42
     wall_color_index = 0
     show_solution = False
-
 
     width_42 = len(PATTERN_42[0])
     height_42 = len(PATTERN_42)
