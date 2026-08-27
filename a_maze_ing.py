@@ -52,7 +52,6 @@ def main() -> int:
     exit_coord = cast(Coord, config["EXIT"])
     perfect = cast(bool, config["PERFECT"])
     output_file = cast(str, config["OUTPUT_FILE"])
-    current_seed = 42
     wall_color_index = 0
     show_solution = False
 
@@ -117,7 +116,7 @@ def main() -> int:
 
         if choice == "1":
             try:
-                new_maze, new_hex_text, new_seed = (
+                new_maze, new_hex_text, _ = (
                     regenerate_maze(
                         gen,
                         perfect,
@@ -145,7 +144,6 @@ def main() -> int:
 
             maze = new_maze
             hex_text = new_hex_text
-            current_seed = new_seed
             solution = new_solution
             show_solution = False
 
