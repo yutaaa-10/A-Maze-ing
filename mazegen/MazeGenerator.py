@@ -236,25 +236,3 @@ def to_hex(maze: "Maze") -> str:
         tmp.append('\n')
     return "".join(tmp)
 
-
-def blocked_add(PATTERN: list[list[bool]],  top_left: Coord) -> set[Coord]:
-    #    define　a list defined as a constant
-    # to form the number “42” in a 7-column by 5-row grid,
-    # with one empty cell in the center
-
-    #    define starting point from  upper left cause loop with "for range()"
-
-    blocked: set[Coord] = set()
-    wid = len(PATTERN[0])
-    hei = len(PATTERN)
-    x0, y0 = top_left
-
-    for r in range(hei):
-        for c in range(wid):
-            if PATTERN[r][c]:
-                blocked.add((x0 + c, y0 + r))
-    return blocked
-
-
-def is_addable_42(width: int, height: int, width_42: int, height_42: int) -> bool:
-    return width >= width_42 + 2 and height >= height_42 + 2
