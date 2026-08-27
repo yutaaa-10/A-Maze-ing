@@ -154,8 +154,8 @@ def get_shortest_path(maze: "Maze", start: Coord, goal: Coord) -> str:
         frontier = next_frontier
     # If goal is impossible, frontier become Empty
     if goal not in visited:
-        raise ValueError
-    # kari no  error
+        raise ValueError(f"no path from {start} to {goal}: "
+                         f"{goal} is unreachable in this maze")
     results: list[Coord] = []
     cur = goal
     while cur != start:
