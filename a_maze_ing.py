@@ -237,8 +237,9 @@ def main() -> int:
         print("There isn't enough space to place 42.")
     try:
         maze = gen.generate(42, perfect, entry, blocked)
-    except IndexError as e:
+    except ValueError as e:
         print(e)
+        return 0
 
     hex_text = to_hex(maze)
 

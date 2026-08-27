@@ -21,7 +21,7 @@ class MazeGenerator:
         edges: Edges = set()
         visited_nodes: set[Coord] = set()
         if start in blocked:
-            raise IndexError("enter in blocked")
+            raise ValueError(f"start {start} is in blocked")
         visited_nodes.add(start)
         visited_nodes.update(blocked)
         stack: list[Coord] = []
