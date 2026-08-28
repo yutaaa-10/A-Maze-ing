@@ -28,7 +28,14 @@ class Color(Enum):
 
 
 def color_block(color: Color) -> str:
-    """Return one 2-character by 1-line block in an RGB colour."""
+    """Create an ANSI-coloured terminal block.
+
+    Args:
+        color: RGB colour used for the block.
+
+    Returns:
+        An ANSI escape sequence representing a coloured block.
+    """
 
     red, green, blue = color.value
     spaces = " " * PIXEL_WIDTH
@@ -48,7 +55,24 @@ def render_canvas(
     exit_color: Color = Color.YELLOW,
     solution_color: Color = Color.RED,
 ) -> str:
-    """Convert a logical canvas to an ANSI-coloured terminal string."""
+    """Convert a logical canvas to an ANSI-coloured terminal string.
+
+    Args:
+        canvas: Logical canvas representing walls and corridors.
+        pattern_centers: Canvas positions belonging to the 42 pattern.
+        entry_center: Canvas position of the maze entry.
+        exit_center: Canvas position of the maze exit.
+        solution_positions: Canvas positions of the solution path.
+        wall_color: Colour used for walls.
+        corridor_color: Colour used for corridors.
+        pattern_color: Colour used for the 42 pattern.
+        entry_color: Colour used for the entry.
+        exit_color: Colour used for the exit.
+        solution_color: Colour used for the solution path.
+
+    Returns:
+        The ANSI-coloured maze as a string.
+    """
 
     wall_block = color_block(wall_color)
     corridor_block = color_block(corridor_color)
@@ -94,6 +118,23 @@ def render_maze(
     exit_color: Color = Color.YELLOW,
     solution_color: Color = Color.RED,
 ) -> str:
+    """Render hexadecimal maze data as an ANSI-coloured string.
+
+    Args:
+        hex_text: Hexadecimal representation of the maze.
+        entry: Entry coordinate of the maze.
+        exit: Exit coordinate of the maze.
+        solution_path: Solution path represented by N, E, S, and W.
+        wall_color: Colour used for walls.
+        corridor_color: Colour used for corridors.
+        pattern_color: Colour used for the 42 pattern.
+        entry_color: Colour used for the entry.
+        exit_color: Colour used for the exit.
+        solution_color: Colour used for the solution path.
+
+    Returns:
+        The rendered maze as an ANSI-coloured string.
+    """
 
     grid = parse_hex_maze(hex_text)
     height = len(grid)
@@ -164,7 +205,20 @@ def display_maze(
     exit_color: Color = Color.YELLOW,
     solution_color: Color = Color.RED,
 ) -> None:
-    """Print hexadecimal maze data as a coloured terminal maze."""
+    """Display hexadecimal maze data in the terminal.
+
+    Args:
+        hex_text: Hexadecimal representation of the maze.
+        entry: Entry coordinate of the maze.
+        exit: Exit coordinate of the maze.
+        solution_path: Solution path represented by N, E, S, and W.
+        wall_color: Colour used for walls.
+        corridor_color: Colour used for corridors.
+        pattern_color: Colour used for the 42 pattern.
+        entry_color: Colour used for the entry.
+        exit_color: Colour used for the exit.
+        solution_color: Colour used for the solution path.
+    """
 
     print(render_maze(
         hex_text,

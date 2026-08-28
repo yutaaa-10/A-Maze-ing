@@ -1,7 +1,7 @@
 import sys
 from typing import cast
 
-from config_check.error_handling import check_date
+from config_check.error_handling import check_data
 from mazegen.MazeGenerator import (
     MazeGenerator,
     get_shortest_path,
@@ -33,7 +33,14 @@ PATTERN_42: list[list[bool]] = [[True, False, False, False, True, True, True],
 
 
 def main() -> int:
-    """Run the maze generator and interactive menu."""
+    """Run the maze generator and interactive menu.
+
+    Load the configuration, generate the maze, write the result
+    to the output file, and run the interactive menu.
+
+    Returns:
+        0 when the program finishes or an error is handled.
+    """
 
     if len(sys.argv) != 2:
         print(
@@ -42,7 +49,7 @@ def main() -> int:
         )
         return 0
 
-    config = check_date(sys.argv[1])
+    config = check_data(sys.argv[1])
     if config is None:
         return 0
 

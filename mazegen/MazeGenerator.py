@@ -46,9 +46,6 @@ class MazeGenerator:
 
         Returns:
             The generated maze.
-
-        Raises:
-            ValueError: If start is one of the blocked cells.
         """
         if blocked is None:
             blocked = set()
@@ -234,9 +231,6 @@ def get_shortest_path(maze: "Maze", start: Coord, goal: Coord) -> str:
 
     Returns:
         One letter per step, using N, E, S and W.
-
-    Raises:
-        ValueError: If goal cannot be reached from start.
     """
     frontier: list[Coord] = [start]
     visited: set[Coord] = set()

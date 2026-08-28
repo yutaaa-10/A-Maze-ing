@@ -9,6 +9,15 @@ class ConfigError(Exception):
 
 
 def parse_coordinate(value: str, key: str) -> tuple[int, int]:
+    """Parse a configuration value as a coordinate.
+
+    Args:
+        value: Coordinate value in x,y format.
+        key: Configuration key associated with the value.
+
+    Returns:
+        The parsed x and y coordinates.
+    """
 
     parts = value.split(",")
 
@@ -29,6 +38,15 @@ def parse_coordinate(value: str, key: str) -> tuple[int, int]:
 
 
 def parse_bool(value: str, key: str) -> bool:
+    """Parse a configuration value as a boolean.
+
+    Args:
+        value: Boolean value represented as True or False.
+        key: Configuration key associated with the value.
+
+    Returns:
+        The parsed boolean value.
+    """
 
     if value == "True":
         return True
@@ -42,6 +60,14 @@ def parse_bool(value: str, key: str) -> bool:
 
 
 def read_config(filename: str) -> dict[str, ConfigValue]:
+    """Read and validate a maze configuration file.
+
+    Args:
+        filename: Path to the configuration file.
+
+    Returns:
+        A dictionary containing the parsed configuration values.
+    """
 
     config: dict[str, ConfigValue] = {}
 
@@ -154,6 +180,11 @@ def read_config(filename: str) -> dict[str, ConfigValue]:
 
 
 def validate_config(config: dict[str, ConfigValue]) -> None:
+    """Validate configuration values for the maze.
+
+    Args:
+        config: Parsed configuration values to validate.
+    """
 
     width = config["WIDTH"]
     height = config["HEIGHT"]
@@ -193,9 +224,18 @@ def validate_config(config: dict[str, ConfigValue]) -> None:
         )
 
 
-def check_date(
+def check_data(
         filename: str,
 ) -> dict[str, ConfigValue] | None:
+    """Read the configuration and handle configuration errors.
+
+    Args:
+        filename: Path to the configuration file.
+
+    Returns:
+        The parsed configuration, or None if validation fails.
+    """
+
     try:
         config = read_config(filename)
 
