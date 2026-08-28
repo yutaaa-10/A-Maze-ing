@@ -17,6 +17,14 @@ DIRECTIONS: dict[str, Coord] = {
 
 
 def parse_hex_maze(hex_text: str) -> HexGrid:
+    """Parse hexadecimal maze text into a grid.
+
+    Args:
+        hex_text: Hexadecimal text representing the maze.
+
+    Returns:
+        The parsed maze as a two-dimensional integer grid.
+    """
 
     lines = hex_text.splitlines()
     if not lines:
@@ -46,6 +54,15 @@ def parse_hex_maze(hex_text: str) -> HexGrid:
 
 
 def create_canvas(width: int, height: int) -> Canvas:
+    """Create an empty canvas for drawing the maze.
+
+    Args:
+        width: Width of the maze.
+        height: Height of the maze.
+
+    Returns:
+        An empty boolean canvas sized for the maze and its walls.
+    """
 
     if width <= 0 or height <= 0:
         raise ValueError("Canvas width and height must be greater than zero.")
@@ -59,6 +76,14 @@ def create_canvas(width: int, height: int) -> Canvas:
 
 
 def draw_cell(canvas: Canvas, x: int, y: int, value: int) -> None:
+    """Draw the walls of a maze cell on the canvas.
+
+    Args:
+        canvas: Canvas on which the cell is drawn.
+        x: Horizontal coordinate of the maze cell.
+        y: Vertical coordinate of the maze cell.
+        value: Bitmask representing the walls of the cell.
+    """
 
     center_x = x * 2 + 1
     center_y = y * 2 + 1
@@ -83,7 +108,14 @@ def draw_cell(canvas: Canvas, x: int, y: int, value: int) -> None:
 
 
 def find_42_centers(grid: HexGrid) -> set[tuple[int, int]]:
-    """Return canvas coordinates of fully closed cells."""
+    """Find canvas centers of fully closed cells.
+
+    Args:
+        grid: Maze grid containing hexadecimal wall values.
+
+    Returns:
+        A set of canvas coordinates for fully closed cells.
+    """
 
     centers: set[tuple[int, int]] = set()
 
@@ -103,7 +135,17 @@ def cell_to_canvas_center(
     height: int,
     name: str,
 ) -> tuple[int, int]:
-    """Convert a maze cell coordinate to its canvas centre."""
+    """Convert a maze cell coordinate to its canvas center.
+
+    Args:
+        cell: Maze cell coordinate to convert.
+        width: Width of the maze.
+        height: Height of the maze.
+        name: Name used to identify the coordinate in error messages.
+
+    Returns:
+        The corresponding center coordinate on the canvas.
+    """
 
     x, y = cell
     if not (0 <= x < width and 0 <= y < height):
@@ -123,7 +165,17 @@ def path_to_canvas_positions(
     width: int,
     height: int,
 ) -> set[CanvasPosition]:
-    """Convert a N/E/S/W path into connected canvas positions."""
+    """Convert a solution path into connected canvas positions.
+
+    Args:
+        start: Starting coordinate of the solution path.
+        path: Solution path represented by N, E, S, and W.
+        width: Width of the maze.
+        height: Height of the maze.
+
+    Returns:
+        A set of canvas positions representing the solution path.
+    """
 
     x, y = start
     if not (0 <= x < width and 0 <= y < height):

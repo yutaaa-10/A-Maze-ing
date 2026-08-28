@@ -8,7 +8,18 @@ def write_hex_file(
     exit_coord: Coord,
     solution: str,
 ) -> None:
-    """Write the hexadecimal maze and coordinates to a file."""
+    """Write the maze data to an output file.
+
+    Args:
+        filename: Path of the output file.
+        hex_text: Hexadecimal representation of the maze.
+        entry: Entry coordinate of the maze.
+        exit_coord: Exit coordinate of the maze.
+        solution: Shortest solution path.
+
+    Raises:
+        RuntimeError: If the output file cannot be written.
+    """
 
     try:
         with open(filename, "w", encoding="utf-8") as file:

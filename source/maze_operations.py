@@ -15,7 +15,18 @@ def regenerate_maze(
     start: Coord,
     blocked: set[Coord]
 ) -> tuple[Maze, str, int]:
-    """Generate a new maze with a fresh, reproducible seed."""
+    """Generate a new maze with a fresh random seed.
+
+    Args:
+        generator: Maze generator used to create the maze.
+        perfect: Whether to generate a perfect maze.
+        start: Starting coordinate of the maze generation.
+        blocked: Coordinates that cannot be used in the maze.
+
+    Returns:
+        The generated maze, its hexadecimal representation,
+        and the seed used for generation.
+    """
 
     seed = randbits(SEED_BITS)
     maze = generator.generate(seed, perfect, start, blocked)
@@ -24,11 +35,15 @@ def regenerate_maze(
 
 
 def blocked_add(PATTERN: list[list[bool]],  top_left: Coord) -> set[Coord]:
-    #    define　a list defined as a constant
-    # to form the number “42” in a 7-column by 5-row grid,
-    # with one empty cell in the center
+    """Create blocked coordinates from a boolean pattern.
 
-    #    define starting point from  upper left cause loop with "for range()"
+    Args:
+        pattern: Boolean pattern representing blocked cells.
+        top_left: Top-left coordinate where the pattern is placed.
+
+    Returns:
+        A set of coordinates corresponding to blocked cells.
+    """
 
     blocked: set[Coord] = set()
     wid = len(PATTERN[0])
@@ -48,9 +63,32 @@ def is_addable_42(
     width_42: int,
     height_42: int,
 ) -> bool:
+    """Check whether the 42 pattern fits inside the maze.
+
+    Args:
+        width: Width of the maze.
+        height: Height of the maze.
+        width_42: Width of the 42 pattern.
+        height_42: Height of the 42 pattern.
+
+    Returns:
+        True if the 42 pattern fits inside the maze, otherwise False.
+    """
+
     return width >= width_42 + 2 and height >= height_42 + 2
 
 
 def is_inside(cell: Coord, width: int, height: int) -> bool:
     x, y = cell
+    """Check whether a coordinate is inside the maze.
+
+    Args:
+        cell: Coordinate to check.
+        width: Width of the maze.
+        height: Height of the maze.
+
+    Returns:
+        True if the coordinate is inside the maze, otherwise False.
+    """
+
     return x >= 0 and x < width and y >= 0 and y < height

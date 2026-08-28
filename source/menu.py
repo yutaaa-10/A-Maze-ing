@@ -12,7 +12,14 @@ def clear_terminal() -> None:
 def rotate_wall_color(
     current_index: int,
 ) -> tuple[int, Color]:
-    """Advance to the next wall colour."""
+    """Advance to the next wall colour.
+
+    Args:
+        current_index: Index of the current wall colour.
+
+    Returns:
+        The next colour index and its corresponding colour.
+    """
 
     next_index = (current_index + 1) % len(WALL_COLORS)
     return next_index, WALL_COLORS[next_index]
@@ -21,7 +28,11 @@ def rotate_wall_color(
 def print_menu(
     show_solution: bool,
 ) -> None:
-    """Display currently available menu operations."""
+    """Display currently available menu operations.
+
+    Args:
+        show_solution: Whether the solution is currently displayed.
+    """
 
     if show_solution:
         solution_label = "Hide Solution"
@@ -40,7 +51,11 @@ def print_menu(
 
 
 def pause(message: str) -> None:
-    """Show a message and wait before redrawing the screen."""
+    """Show a message and wait before redrawing the screen.
+
+    Args:
+        message: Message displayed before waiting for user input.
+    """
 
     try:
         input(f"{message} Press Enter to continue.")
@@ -56,7 +71,19 @@ def solution_menu(
     wall_color: Color,
     show_solution: bool,
 ) -> bool:
-    """Show, hide, and preview the shortest solution path."""
+    """Show, hide, and preview the shortest solution path.
+
+    Args:
+        hex_text: Hexadecimal representation of the maze.
+        entry: Entry coordinate of the maze.
+        exit_coord: Exit coordinate of the maze.
+        solution: Shortest solution path.
+        wall_color: Colour used to display the maze walls.
+        show_solution: Whether the solution is currently displayed.
+
+    Returns:
+        True if the solution should be displayed, otherwise False.
+    """
 
     while True:
         clear_terminal()
